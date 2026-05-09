@@ -38,10 +38,8 @@ class TranslationsDownloader
             return true;
         }
 
-        $lock_key = 'wpi_xlate_dl_lock_' . sanitize_key((string) $locale);
-        $lock_group = 'wpi-translation-locks';
-        $lock_acquired = wp_cache_add($lock_key, 1, $lock_group, 5 * MINUTE_IN_SECONDS);
-        if (!$lock_acquired) {
+        $lock_key = static::acquireDownloadLock($locale, 5 * MINUTE_IN_SECONDS);
+        if (!$lock_key) {
             return false;
         }
 
@@ -120,11 +118,56 @@ class TranslationsDownloader
                 throw new \RuntimeException($cantDownload);
             }
         } finally {
-            wp_cache_delete($lock_key, $lock_group);
+            static::releaseDownloadLock($lock_key);
 
             if (isset($temp_file) && is_string($temp_file) && file_exists($temp_file)) {
                 @unlink($temp_file);
             }
+        }
+    }
+
+    /**
+     * Acquire translation downloader lock using SQL-backed atomic add_option.
+     *
+     * @param string $locale      locale
+     * @param int    $ttl_seconds lock TTL in seconds
+     *
+     * @return string|false lock option key on success, false otherwise
+     */
+    private static function acquireDownloadLock($locale, $ttl_seconds = 300)
+    {
+        $lock_key = 'wpi_xlate_dl_lock_' . sanitize_key((string) $locale);
+        $now = time();
+        $expires_at = $now + (int) $ttl_seconds;
+
+        $acquired = add_option($lock_key, $expires_at, '', 'no');
+        if ($acquired) {
+            return $lock_key;
+        }
+
+        $existing = get_option($lock_key);
+        if (is_numeric($existing) && (int) $existing < $now) {
+            delete_option($lock_key);
+            $acquired = add_option($lock_key, $expires_at, '', 'no');
+            if ($acquired) {
+                return $lock_key;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Release translation downloader lock.
+     *
+     * @param string|false $lock_key lock option key
+     *
+     * @return void
+     */
+    private static function releaseDownloadLock($lock_key)
+    {
+        if ($lock_key) {
+            delete_option($lock_key);
         }
     }
 
