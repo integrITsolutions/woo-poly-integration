@@ -41,8 +41,31 @@ class Ajax
     public function filter_woocommerce_ajax_get_endpoint($url, $request)
     {
         global $polylang;
-        // @internal Polylang internal API; reverify on Polylang minor upgrades.
-        $lang = ( $polylang->curlang ) ? $polylang->curlang : $polylang->pref_lang;
-        return parse_url($polylang->filters_links->links->get_home_url($lang), PHP_URL_PATH) . '?' . parse_url($url, PHP_URL_QUERY);
+        $lang = null;
+        if (is_object($polylang)) {
+            // @internal Polylang internal API; reverify on Polylang minor upgrades.
+            $lang = isset($polylang->curlang) && $polylang->curlang
+                ? $polylang->curlang
+                : (isset($polylang->pref_lang) ? $polylang->pref_lang : null);
+        }
+
+        $home_url_lang = '';
+        if (
+            $lang
+            && is_object($polylang)
+            && isset($polylang->filters_links->links)
+            && is_object($polylang->filters_links->links)
+            && method_exists($polylang->filters_links->links, 'get_home_url')
+        ) {
+            // Defensive: Polylang internals may shift in major upgrades; fail open.
+            // @internal Polylang internal API; reverify on Polylang minor upgrades.
+            $home_url_lang = $polylang->filters_links->links->get_home_url($lang);
+        }
+
+        if (!$home_url_lang) {
+            return $url;
+        }
+
+        return parse_url($home_url_lang, PHP_URL_PATH) . '?' . parse_url($url, PHP_URL_QUERY);
     }
 }

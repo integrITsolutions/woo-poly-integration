@@ -185,21 +185,21 @@ class Order
     }
 
     /**
-     * Set order language: dual-write to order CRUD meta AND Polylang taxonomy.
+     * Set order language: meta-authoritative write with best-effort taxonomy sync.
      *
-     * Use this as the single point of truth for writing order language. Direct
-     * calls to `pll_set_post_language()` are discouraged because they only cover
-     * the taxonomy half.
+     * Use this as the single point of truth for writing order language. Order
+     * CRUD meta is authoritative for HPOS compatibility. Polylang taxonomy write
+     * is a compatibility layer so Polylang UI/queries can see order language.
      *
      * Validates the language slug against Polylang's known languages list before
-     * writing. Returns true only when BOTH the meta write and the taxonomy write
-     * report success — partial success (split-brain) returns false so callers
-     * can detect and react to inconsistency.
+     * writing. Returns true when meta write succeeded (taxonomy sync may still
+     * fail). Returns false when meta write failed, which means no language was
+     * persisted.
      *
      * @param int|\WC_Order $order Order ID or WC_Order object.
      * @param string        $lang  Polylang language slug (e.g. 'en', 'de').
-     * @return bool true if both writes succeeded, false on any validation or
-     *              persistence failure.
+     * @return bool true if authoritative meta write succeeded, false on any
+     *              validation/order lookup/meta persistence failure.
      */
     public static function setLanguage($order, $lang)
     {
@@ -220,7 +220,7 @@ class Order
             return false;
         }
 
-        // 1. Meta first.
+        // 1. Meta first (authoritative, HPOS-safe).
         $meta_ok = false;
         try {
             $order_obj->update_meta_data(self::META_KEY_LANGUAGE, $lang);
@@ -231,28 +231,26 @@ class Order
         }
 
         if (!$meta_ok) {
+            // Meta failed: nothing persisted. Do not attempt taxonomy write.
             return false;
         }
 
-        // 2. Taxonomy second.
-        $tax_ok = true;
+        // 2. Taxonomy write is best-effort compatibility only.
         if (function_exists('pll_set_post_language')) {
             pll_set_post_language($order_obj->get_id(), $lang);
-            $stored_slug = function_exists('pll_get_post_language')
-                ? pll_get_post_language($order_obj->get_id())
-                : false;
-            $tax_ok = ($stored_slug === $lang);
-        }
-
-        if (!$tax_ok) {
-            // Roll back meta to avoid split-brain state.
-            try {
-                $order_obj->delete_meta_data(self::META_KEY_LANGUAGE);
-                $order_obj->save();
-            } catch (\Throwable $e) {
-                // Best effort rollback.
+            if (function_exists('pll_get_post_language')) {
+                $stored_slug = pll_get_post_language($order_obj->get_id());
+                if ($stored_slug !== $lang && function_exists('_doing_it_wrong')) {
+                    _doing_it_wrong(
+                        __METHOD__,
+                        sprintf(
+                            'Order #%d: Polylang taxonomy write failed (HPOS placeholder may have changed). Meta is authoritative; taxonomy is best-effort.',
+                            $order_obj->get_id()
+                        ),
+                        '2.0.0'
+                    );
+                }
             }
-            return false;
         }
 
         return true;

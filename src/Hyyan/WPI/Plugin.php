@@ -234,7 +234,9 @@ class Plugin
             Taxonomies\Taxonomies::updatePolyLangFromWooPolyMetas($metas, $metas, Admin\MetasList::getID());
         }
 
-        $is_v2_or_newer = version_compare((string) $newVersion, '2.0.0', '>=');
+        // Use pre-release-aware floor so 2.0.0-alpha.* is treated as v2.
+        // In PHP version_compare ordering, 'dev' sorts below 'alpha' and final.
+        $is_v2_or_newer = version_compare((string) $newVersion, '2.0.0-dev', '>=');
         $old_version = is_string($oldVersion) ? trim($oldVersion) : '';
         $is_from_v1 = (strpos($old_version, '1.') === 0);
         $is_fresh_install = ($old_version === '');

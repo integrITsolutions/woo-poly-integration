@@ -40,6 +40,8 @@ WordPress / WooCommerce / Polylang requirements.
 - **Email language resolution chain** (cron / Action Scheduler safe): order CRUD meta → Polylang taxonomy → site default. Fixes a Phase B+HPOS+sync-off issue where `pll_get_post_language()` could be unreliable in cron contexts.
 - **Reports module dropped**. The legacy `WooCommerce → Reports` integration is removed. The legacy reports system is on Woo's roadmap for retirement and the new wc-admin Analytics has no documented per-language extension API. Plugin no longer hooks `woocommerce_reports_*`.
 - **Code quality**: replaced two `unserialize()` blob defaults in `Plugin::onUpgrade()` with array literals.
+- **v2 upgrade gate for pre-releases**: `Plugin::onUpgrade()` now compares against `2.0.0-dev` (not `2.0.0`) so `2.0.0-alpha.*` versions correctly count as v2 for migration-notice logic; PHP `version_compare()` ranks pre-release builds below final release tags.
+- **Order language write semantics clarified**: `Order::setLanguage()` keeps order meta as authoritative HPOS storage and treats Polylang taxonomy assignment as best-effort compatibility; taxonomy sync failure no longer rolls back good meta data.
 
 ### Phase C — Cart / Checkout block compatibility
 

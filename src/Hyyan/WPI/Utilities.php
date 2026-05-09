@@ -34,8 +34,20 @@ final class Utilities
     public static function getProductTranslationsArrayByID($ID, $excludeDefault = false)
     {
         global $polylang;
-        // @internal Polylang internal API; reverify on Polylang minor upgrades.
-        $IDS = PLL()->model->post->get_translations($ID);
+        $IDS = array();
+        $pll = function_exists('PLL') ? PLL() : null;
+        if (
+            $pll
+            && isset($pll->model->post)
+            && method_exists($pll->model->post, 'get_translations')
+        ) {
+            // Defensive: Polylang internals may shift in major upgrades; fail open.
+            // @internal Polylang internal API; reverify on Polylang minor upgrades.
+            $IDS = $pll->model->post->get_translations($ID);
+        }
+        if (!is_array($IDS)) {
+            $IDS = array();
+        }
         if (true === $excludeDefault) {
             unset($IDS[pll_default_language()]);
         }
@@ -640,8 +652,19 @@ final class Utilities
 			//if we are switching languages, set the polylang curlang
 			//and load string translations for that language
 			if ( $languageLocale ) {
-				// @internal Polylang internal API; reverify on Polylang minor upgrades.
-				$pll_lang = $polylang->model->get_language( $languageLocale );
+				$pll_lang = false;
+				if (
+					is_object( $polylang )
+					&& isset( $polylang->model )
+					&& is_object( $polylang->model )
+					&& method_exists( $polylang->model, 'get_language' )
+				) {
+					// Defensive: Polylang internals may shift in major upgrades; fail open.
+					// @internal Polylang internal API; reverify on Polylang minor upgrades.
+					$pll_lang = $polylang->model->get_language( $languageLocale );
+				} else {
+					return;
+				}
 				if ( $pll_lang ) {
 					// @internal Polylang internal API; reverify on Polylang minor upgrades.
 					$polylang->curlang = $pll_lang;
@@ -649,7 +672,9 @@ final class Utilities
 				} else {
 					//20190630: old code used in previous versions of this plugin
 					// @internal Polylang internal API; reverify on Polylang minor upgrades.
-					$polylang->curlang->locale = $languageLocale;
+					if ( isset( $polylang->curlang ) && is_object( $polylang->curlang ) ) {
+						$polylang->curlang->locale = $languageLocale;
+					}
 				}
 				// Cache miss
 				$mo = $cache->get( $languageLocale );
@@ -666,8 +691,11 @@ final class Utilities
 			}
 			} else {
 				//if the $languageLocale is not set return to Show all languages
-				// @internal Polylang internal API; reverify on Polylang minor upgrades.
-				$polylang->curlang = false;
+				if ( is_object( $polylang ) ) {
+					// Defensive: Polylang internals may shift in major upgrades; fail open.
+					// @internal Polylang internal API; reverify on Polylang minor upgrades.
+					$polylang->curlang = false;
+				}
 			}
 		}
 
