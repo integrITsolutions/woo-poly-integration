@@ -1,4 +1,5 @@
 <?php
+// Patched by IntegrIT Solutions for v2.0 fork (2026-05-09): gated admin asset enqueue to plugin settings screen only.
 
 /**
  * weDevs Settings API wrapper class
@@ -33,7 +34,11 @@ class WeDevs_Settings_API {
     /**
      * Enqueue scripts and styles
      */
-    function admin_enqueue_scripts() {
+    function admin_enqueue_scripts( $hook_suffix = '' ) {
+        if ( $hook_suffix !== 'settings_page_hyyan-wpi' ) {
+            return;
+        }
+
         wp_enqueue_style( 'wp-color-picker' );
 
         wp_enqueue_media();

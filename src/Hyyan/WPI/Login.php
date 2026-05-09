@@ -15,10 +15,14 @@ namespace Hyyan\WPI;
  *
  * Handle login
  *
+ * @deprecated since 2.0.0 Not instantiated by the plugin core since v1.x and
+ *             kept only for historical/reference purposes.
+ *
  * @author Hyyan Abo Fakher <hyyanaf@gmail.com>
  */
 class Login
 {
+    // @internal Not currently used. Was disabled in v1.x.
 
     /**
      * Construct object.

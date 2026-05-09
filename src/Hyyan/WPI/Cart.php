@@ -584,6 +584,15 @@ class Cart
      */
     public function getVariationTranslation($variation_id, $lang = '')
     {
+        static $memo = array();
+
+        $variation_id = (int) $variation_id;
+        $lang = $lang ? $lang : pll_current_language();
+        $key = $variation_id . '|' . $lang;
+        if (array_key_exists($key, $memo)) {
+            return $memo[$key];
+        }
+
         $_variation = false;
 
         // Get parent product translation id for the given language
@@ -600,15 +609,24 @@ class Cart
                 'meta_key' => Variation::DUPLICATE_KEY,
                 'meta_value' => $meta,
                 'post_type' => 'product_variation',
-                'post_parent' => $_product_id
+                'post_parent' => $_product_id,
+                'fields' => 'ids',
+                'posts_per_page' => 1,
+                'numberposts' => 1,
+                'no_found_rows' => true,
+                'update_post_meta_cache' => false,
+                'update_post_term_cache' => false,
+                'lang' => '',
             ));
 
             // Get variation translation
-            if ($variation_post && count($variation_post) == 1) {
-                $_variation = wc_get_product($variation_post[0]->ID);
+            if ($variation_post && count($variation_post) === 1) {
+                $_variation = wc_get_product($variation_post[0]);
             }
         }
 
-        return $_variation;
+        $memo[$key] = $_variation;
+
+        return $memo[$key];
     }
 }

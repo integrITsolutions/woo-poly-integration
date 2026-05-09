@@ -109,8 +109,17 @@ class Variation
                         );
                         //- delete duplicate variations
                         $count = count($posts);
-                        error_log("woo-poly is deleting duplicate variations for variation " . $variation['variation_id'] . 
-                                " in product " . $this->from->get_id() . " translation " . $this->to->get_id());
+                        if (function_exists('wc_get_logger')) {
+                            wc_get_logger()->warning(
+                                sprintf(
+                                    'Deleting duplicate variations for variation %d in product %d translation %d',
+                                    (int) $variation['variation_id'],
+                                    (int) $this->from->get_id(),
+                                    (int) $this->to->get_id()
+                                ),
+                                array('source' => 'woo-poly-integration')
+                            );
+                        }
                         for($i = 1; $i < $count; $i++)
                         {                            
                             $duplicate = wc_get_product($posts[$i]);

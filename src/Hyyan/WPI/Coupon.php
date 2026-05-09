@@ -27,6 +27,23 @@ class Coupon
     static $enable_wjecf = false;
 
     /**
+     * Log plugin debug information through WooCommerce logger when enabled.
+     *
+     * @param string $message Log message.
+     */
+    protected static function logDebug($message)
+    {
+        if (!self::$enable_logging || !function_exists('wc_get_logger')) {
+            return;
+        }
+
+        wc_get_logger()->debug(
+            (string) $message,
+            array('source' => 'woo-poly-integration')
+        );
+    }
+
+    /**
      * Construct object.
      */
     public function __construct()
@@ -48,11 +65,9 @@ class Coupon
             /* additional fields for WooCommerce Extended Coupon Features */
             self::$enable_wjecf = function_exists('WJECF');
             if (self::$enable_wjecf){
-                if (self::$enable_logging) {
-                    error_log('woopoly enabled wjecf translation: ' . 
-                        ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 
-                        ' no $_SERVER[REQUEST_URI] available'));            
-                }
+                self::logDebug('woopoly enabled wjecf translation: '
+                    . ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :
+                    ' no $_SERVER[REQUEST_URI] available'));
                 add_filter('woocommerce_coupon_get__wjecf_enqueue_message',
                     array($this, 'translateMessage'), 10, 2);
                 add_filter('woocommerce_coupon_get__wjecf_select_free_product_message',
@@ -77,11 +92,9 @@ class Coupon
             return $productIds;
         }
         $productLang = pll_current_language();
-        if (self::$enable_logging) {
-            error_log('woopoly getting translated ids for: ' . $productIds . ' for coupon ' . $coupon->get_code() . 
-                ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 
-                ' no $_SERVER[REQUEST_URI] available'));            
-        }
+        self::logDebug('woopoly getting translated ids for: ' . $productIds . ' for coupon ' . $coupon->get_code() .
+            ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :
+            ' no $_SERVER[REQUEST_URI] available'));
         $productIds = explode(',', $productIds);
         $mappedIds = array();
         foreach ($productIds as $productId) {
@@ -157,11 +170,9 @@ class Coupon
         if (! $coupons_loaded && ! $doingload) {
             $doingload = true;
             if (function_exists('pll_register_string')) {
-                if (self::$enable_logging) {
-                    error_log('woopoly registering coupons for translation: ' . 
-                        ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 
-                        ' no $_SERVER[REQUEST_URI] available'));            
-                }
+                self::logDebug('woopoly registering coupons for translation: '
+                    . ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :
+                    ' no $_SERVER[REQUEST_URI] available'));
                 $coupons = $this->getCoupons();
             
                 foreach ($coupons as $coupon_postid) {
@@ -207,17 +218,13 @@ class Coupon
         
         $coupon_ids = get_transient($tKey);
         if ($coupon_ids) {
-            if (self::$enable_logging) {
-                error_log('woopoly found coupons in transient: ' . 
-                    ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 
-                    ' no $_SERVER[REQUEST_URI] available'));            
-            }
+            self::logDebug('woopoly found coupons in transient: '
+                . ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :
+                ' no $_SERVER[REQUEST_URI] available'));
         } else {        
-            if (self::$enable_logging) {
-                error_log('woopoly loading coupons to transient: ' . 
-                    ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 
-                    ' no $_SERVER[REQUEST_URI] available'));            
-            }
+            self::logDebug('woopoly loading coupons to transient: '
+                . ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :
+                ' no $_SERVER[REQUEST_URI] available'));
             $args = array(
                 'posts_per_page'   => -1,
                 'orderby'          => 'title',
@@ -270,15 +277,13 @@ class Coupon
             }
         }
 
-        if (self::$enable_logging) {
-            error_log('woopoly setting related for coupon : ' . $coupon->get_code() .
-                ' include-products:' . implode(',', $productIDS) .
-                ' exclude-products:' . implode(',', $excludeProductIDS) .
-                ' include-categories:' . implode(',', $productCategoriesIDS) .
-                ' exclude-categories:' . implode(',', $excludeProductCategoriesIDS) .
-                ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 
-                ' no $_SERVER[REQUEST_URI] available'));            
-        }
+        self::logDebug('woopoly setting related for coupon : ' . $coupon->get_code() .
+            ' include-products:' . implode(',', $productIDS) .
+            ' exclude-products:' . implode(',', $excludeProductIDS) .
+            ' include-categories:' . implode(',', $productCategoriesIDS) .
+            ' exclude-categories:' . implode(',', $excludeProductCategoriesIDS) .
+            ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :
+            ' no $_SERVER[REQUEST_URI] available'));
 
         $coupon->set_product_ids($productIDS);
         $coupon->set_excluded_product_ids($excludeProductIDS);

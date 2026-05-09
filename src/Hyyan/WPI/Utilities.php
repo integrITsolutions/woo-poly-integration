@@ -39,6 +39,12 @@ final class Utilities
      */
     public static function getProductTranslationsArrayByID($ID, $excludeDefault = false)
     {
+        static $memo = array();
+        $key = (int) $ID . '|' . ($excludeDefault ? '1' : '0');
+        if (array_key_exists($key, $memo)) {
+            return $memo[$key];
+        }
+
         global $polylang;
         $IDS = array();
         $pll = function_exists('PLL') ? PLL() : null;
@@ -58,7 +64,9 @@ final class Utilities
             unset($IDS[pll_default_language()]);
         }
 
-        return $IDS;
+        $memo[$key] = $IDS;
+
+        return $memo[$key];
     }
 
     /**
