@@ -164,39 +164,41 @@ class Coupon
      */
     public function registerCouponStringsForTranslation()
     {
+        if (!is_admin() || !function_exists('pll_register_string')) {
+            return;
+        }
+
         static $coupons_loaded;
         static $doingload;      
         if ($coupons_loaded || $doingload){return;}
         if (! $coupons_loaded && ! $doingload) {
             $doingload = true;
-            if (function_exists('pll_register_string')) {
-                self::logDebug('woopoly registering coupons for translation: '
-                    . ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :
-                    ' no $_SERVER[REQUEST_URI] available'));
-                $coupons = $this->getCoupons();
-            
-                foreach ($coupons as $coupon_postid) {
-                    $coupon = new \WC_Coupon( $coupon_postid );
+            self::logDebug('woopoly registering coupons for translation: '
+                . ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :
+                ' no $_SERVER[REQUEST_URI] available'));
+            $coupons = $this->getCoupons();
+        
+            foreach ($coupons as $coupon_postid) {
+                $coupon = new \WC_Coupon( $coupon_postid );
 
-                    $coupon_code = $coupon->get_code();
-                    $coupon_slug = sanitize_title_with_dashes($coupon_code);
-                    pll_register_string($coupon_slug, $coupon_code,
-                        __('WooCommerce Coupon Names', 'woo-poly-integration'));
-                    pll_register_string($coupon_slug . '_description', $coupon->get_description(),
+                $coupon_code = $coupon->get_code();
+                $coupon_slug = sanitize_title_with_dashes($coupon_code);
+                pll_register_string($coupon_slug, $coupon_code,
+                    __('WooCommerce Coupon Names', 'woo-poly-integration'));
+                pll_register_string($coupon_slug . '_description', $coupon->get_description(),
+                    __('WooCommerce Coupon Names', 'woo-poly-integration'), true);
+
+                if (self::$enable_wjecf) {
+                    
+                    $coupon_message = $coupon->get_meta('_wjecf_enqueue_message', true);
+                    if ($coupon_message) {
+                        pll_register_string($coupon_slug . '_message', $coupon_message,
                         __('WooCommerce Coupon Names', 'woo-poly-integration'), true);
-
-                    if (self::$enable_wjecf) {
-                        
-                        $coupon_message = $coupon->get_meta('_wjecf_enqueue_message', true);
-                        if ($coupon_message) {
-                            pll_register_string($coupon_slug . '_message', $coupon_message,
-                            __('WooCommerce Coupon Names', 'woo-poly-integration'), true);
-                        }
-                        $freeproduct_message = $coupon->get_meta('_wjecf_select_free_product_message', true);
-                        if ($freeproduct_message) {
-                            pll_register_string($coupon_slug . '_freeproductmessage', $freeproduct_message,
-                            __('WooCommerce Coupon Names', 'woo-poly-integration'), true);
-                        }
+                    }
+                    $freeproduct_message = $coupon->get_meta('_wjecf_select_free_product_message', true);
+                    if ($freeproduct_message) {
+                        pll_register_string($coupon_slug . '_freeproductmessage', $freeproduct_message,
+                        __('WooCommerce Coupon Names', 'woo-poly-integration'), true);
                     }
                 }
             }
@@ -214,10 +216,23 @@ class Coupon
     {
         global $woocommerce;
         
-        $tKey	 = 'coupons-ids';
-        
-        $coupon_ids = get_transient($tKey);
-        if ($coupon_ids) {
+        $transient_key = 'wpi_coupons_ids';
+        $legacy_transient_key = 'coupons-ids';
+
+        $coupon_ids = get_transient($transient_key);
+        if (false === $coupon_ids) {
+            $legacy_coupon_ids = get_transient($legacy_transient_key);
+            if (false !== $legacy_coupon_ids) {
+                $coupon_ids = $legacy_coupon_ids;
+                delete_transient($legacy_transient_key);
+                if (is_multisite()) {
+                    delete_site_transient($legacy_transient_key);
+                }
+                set_transient($transient_key, $coupon_ids, 3600);
+            }
+        }
+
+        if (false !== $coupon_ids) {
             self::logDebug('woopoly found coupons in transient: '
                 . ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] :
                 ' no $_SERVER[REQUEST_URI] available'));
@@ -234,7 +249,7 @@ class Coupon
                 'fields'           => 'ids',                
             );
             $coupon_ids = get_posts($args);
-            set_transient($tKey, $coupon_ids, 3600);
+            set_transient($transient_key, $coupon_ids, 3600);
         }
         return $coupon_ids;
     }

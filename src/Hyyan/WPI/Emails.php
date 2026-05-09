@@ -118,7 +118,9 @@ class Emails
         if ('on' === Settings::getOption('emails', Features::getID(), 'on')) {
 
             // Register WooCommerce email subjects and headings in polylang strings translations table
-            $this->registerEmailStringsForTranslation(); // called only after all plugins are loaded
+            if (is_admin()) {
+                $this->registerEmailStringsForTranslation(); // called only after all plugins are loaded
+            }
             // Translate WooCommerce email subjects and headings to the order language
             // new order
             add_filter('woocommerce_email_subject_new_order', array($this, 'filter_email_subject'), 10, 3);
@@ -261,7 +263,7 @@ class Emails
      */
     public function registerString($email_type, $suffix = '')
     {
-        if (function_exists('pll_register_string')) {
+        if (is_admin() && function_exists('pll_register_string')) {
             $settings = get_option('woocommerce_' . $email_type . '_settings');
             if ($settings) {
                 if (isset($settings['subject' . $suffix])) {
@@ -294,14 +296,14 @@ class Emails
      */
     public function registerCommonString($setting, $default = '')
     {
-        if (function_exists('pll_register_string')) {
+        if (is_admin() && function_exists('pll_register_string')) {
             $value = get_option($setting);
 
             if (!($value)) {
                 $value = $default;
             }
             if ($value) {
-                pll_register_string($setting, $value, __('Woocommerce Emails', 'woo-poly-integration'));
+                pll_register_string($setting, $value, __('WooCommerce Emails', 'woo-poly-integration'));
             }
         }
     }

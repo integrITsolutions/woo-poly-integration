@@ -33,7 +33,9 @@ class Endpoints
     {
 
         /* Register endpoints to translate as polulang strings */
-        $this->regsiterEndpointsTranslations();
+        if (is_admin()) {
+            $this->regsiterEndpointsTranslations();
+        }
 
         add_action(
                 'init', array($this, 'rewriteEndpoints'), 11
@@ -106,9 +108,11 @@ class Endpoints
      */
     public function getEndpointTranslation($endpoint)
     {
-        pll_register_string(
-                $endpoint, $endpoint, static::getPolylangStringSection()
-        );
+        if (is_admin() && function_exists('pll_register_string')) {
+            pll_register_string(
+                    $endpoint, $endpoint, static::getPolylangStringSection()
+            );
+        }
 
         $this->endpoints [] = $endpoint;
 

@@ -26,7 +26,9 @@ class Tax
     public function __construct()
     {
         add_filter('woocommerce_get_price_suffix', array($this, 'filterPriceSuffix'), 10, 4);
-        $this->registerTaxStringsForTranslation();
+        if (is_admin()) {
+            $this->registerTaxStringsForTranslation();
+        }
     }
 
     /**
@@ -52,13 +54,13 @@ class Tax
      */
     public function registerTaxString($setting, $default = '')
     {
-        if (function_exists('pll_register_string')) {
+        if (is_admin() && function_exists('pll_register_string')) {
             $value = get_option($setting);
             if (!($value)) {
                 $value = $default;
             }
             if ($value) {
-                pll_register_string($setting, $value, __('Woocommerce Taxes', 'woo-poly-integration'));
+                pll_register_string($setting, $value, __('WooCommerce Taxes', 'woo-poly-integration'));
             }
         }
     }

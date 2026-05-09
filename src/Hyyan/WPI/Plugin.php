@@ -267,6 +267,7 @@ class Plugin
         if ($migrated_count !== false) {
             delete_transient(self::TRANSIENT_V2_MIGRATION_RESULT);
             echo '<div class="notice notice-success is-dismissible"><p>'
+                /* translators: %d: Number of migrated orders. */
                 . esc_html(sprintf(__('Order language migration completed. Updated %d orders.', 'woo-poly-integration'), (int) $migrated_count))
                 . '</p></div>';
         }
@@ -632,16 +633,18 @@ class Plugin
 			$pageid = wc_get_page_id( $page_type );
 			if ( $pageid == -1 || ! get_post( $pageid ) ) {
 				if ( $create_pages ) {
-				    //if any of the pages is missing, rerun the woocommerce page creation
-				    //which will just fill in any missing page
-				    \WC_Install::create_pages();
-				    $pageid = wc_get_page_id( $page_type );
-					$warnings[ $page_type . '::' . $default_locale ] = sprintf(
-					__( '%1$s page in base language %2$s was not found and was created using woocommerce create_pages() as page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $default_locale, edit_post_link( $pageid, 'link' ), $pageid );
-				} else {
-					$warnings[ $page_type . '::' . $default_locale ] = sprintf(
-					__( '%1$s page in language %2$s was not found and must be created for the shop to work: this will be done automatically if Check WooCommerce Pages option is enabled in %3$s.  Translations for this page may also be missing.', 'woo-poly-integration' ), $page_type, $default_locale, static::settingsLinkHTML() );
-					$failure										 = true;
+					    //if any of the pages is missing, rerun the woocommerce page creation
+					    //which will just fill in any missing page
+					    \WC_Install::create_pages();
+					    $pageid = wc_get_page_id( $page_type );
+						/* translators: 1: WooCommerce page type, 2: Base language locale, 3: Admin edit URL, 4: Page ID. */
+						$warnings[ $page_type . '::' . $default_locale ] = sprintf(
+						__( '%1$s page in base language %2$s was not found and was created using woocommerce create_pages() as page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $default_locale, edit_post_link( $pageid, 'link' ), $pageid );
+					} else {
+						/* translators: 1: WooCommerce page type, 2: Base language locale, 3: HTML link to plugin settings. */
+						$warnings[ $page_type . '::' . $default_locale ] = sprintf(
+						__( '%1$s page in language %2$s was not found and must be created for the shop to work: this will be done automatically if Check WooCommerce Pages option is enabled in %3$s.  Translations for this page may also be missing.', 'woo-poly-integration' ), $page_type, $default_locale, static::settingsLinkHTML() );
+						$failure										 = true;
 				}
 			}
 			$pages[ $page_type ] = $pageid;
@@ -661,13 +664,14 @@ class Plugin
 				$orig_postlocale = pll_get_post_language( $orig_page_id, 'locale' );
 				$orig_postlang	 = pll_get_post_language( $orig_page_id, 'slug' );
 				//default pages may not have language set correctly
-				if ( ! $orig_postlocale ) {
-					$orig_postlocale = $default_locale;
-					$orig_postlang									 = $default_lang;
-					pll_set_post_language( $orig_page_id, $orig_postlang );
-					$warnings[ $page_type . '::' . $default_locale ] = sprintf(
-					__( '%1$s page did not have language - language set to %2$s on page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $default_locale, edit_post_link( $orig_page_id, 'link' ), $orig_page_id );
-				}
+					if ( ! $orig_postlocale ) {
+						$orig_postlocale = $default_locale;
+						$orig_postlang									 = $default_lang;
+						pll_set_post_language( $orig_page_id, $orig_postlang );
+						/* translators: 1: WooCommerce page type, 2: Base language locale, 3: Admin edit URL, 4: Page ID. */
+						$warnings[ $page_type . '::' . $default_locale ] = sprintf(
+						__( '%1$s page did not have language - language set to %2$s on page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $default_locale, edit_post_link( $orig_page_id, 'link' ), $orig_page_id );
+					}
 				$translations[ $orig_postlang ] = $orig_page_id;
 				foreach ( $langs as $langId => $langLocale ) {
 					$translation_id	 = $orig_page_id;
@@ -728,16 +732,18 @@ class Plugin
                                 );
                                 $translation_id	 = wp_insert_post( $page_data );
 							}
-							//if there now is a translation is where there was not before, creation must have been successful
-							if ( $translation_id ) {
-							    pll_set_post_language( $translation_id, $langSlug );
-							    $changed = true;
-								$warnings[ $page_type . '::' . $langLocale ] = sprintf(
-								__( '%1$s page in language %2$s was not found and was created as page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $langLocale, get_edit_post_link( $translation_id, 'link' ), $translation_id );
-							} else {
-								$warnings[ $page_type . '::' . $langLocale ] = sprintf(
-								__( '%1$s page in language %2$s was not found and must be created for the shop to work in this language: this will be done automatically if Check WooCommerce Pages option is enabled in %3$s.', 'woo-poly-integration' ), $page_type, $langLocale, static::settingsLinkHTML() );
-								$failure									 = true;
+								//if there now is a translation is where there was not before, creation must have been successful
+								if ( $translation_id ) {
+								    pll_set_post_language( $translation_id, $langSlug );
+								    $changed = true;
+									/* translators: 1: WooCommerce page type, 2: Language locale, 3: Admin edit URL, 4: Page ID. */
+									$warnings[ $page_type . '::' . $langLocale ] = sprintf(
+									__( '%1$s page in language %2$s was not found and was created as page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $langLocale, get_edit_post_link( $translation_id, 'link' ), $translation_id );
+								} else {
+									/* translators: 1: WooCommerce page type, 2: Language locale, 3: HTML link to plugin settings. */
+									$warnings[ $page_type . '::' . $langLocale ] = sprintf(
+									__( '%1$s page in language %2$s was not found and must be created for the shop to work in this language: this will be done automatically if Check WooCommerce Pages option is enabled in %3$s.', 'woo-poly-integration' ), $page_type, $langLocale, static::settingsLinkHTML() );
+									$failure									 = true;
 							}
 						}
 						//always add the existing translations back into the translations array
@@ -749,22 +755,25 @@ class Plugin
 					if ( $translation_id && ! $isNewPost ) {
 						$thisPost = get_post( $translation_id );
 						if ( $thisPost ) {
-							$postStatus = $thisPost->post_status;
-							if ( $postStatus != 'publish' ) {
-								$baseURL = is_multisite() ? get_admin_url() : admin_url();
-								if ( $postStatus == 'trash' ) {
-									$warnings[ $page_type . '::' . $langSlug ] = sprintf(
-									__( '%1$s page in language %2$s has been deleted, please check the <a href="%3$s">trash</a>, and restore page %4$s', 'woo-poly-integration' ), $page_type, $langLocale, $baseURL . 'edit.php?post_status=trash&post_type=page&lang=' . $langSlug, $translation_id );
-								} else {
-									$warnings[ $page_type . '::' . $langSlug ] = sprintf(
-									__( '%1$s page in language %2$s is in status %3$s and needs to be published for the shop to work properly, check page <a href="%4$s">%5$s</a>', 'woo-poly-integration' ), $page_type, $langLocale, $postStatus, get_edit_post_link( $translation_id, 'link' ), $translation_id );
-								}
+								$postStatus = $thisPost->post_status;
+								if ( $postStatus != 'publish' ) {
+									$baseURL = is_multisite() ? get_admin_url() : admin_url();
+									if ( $postStatus == 'trash' ) {
+										/* translators: 1: WooCommerce page type, 2: Language locale, 3: Trash listing URL, 4: Missing page ID. */
+										$warnings[ $page_type . '::' . $langSlug ] = sprintf(
+										__( '%1$s page in language %2$s has been deleted, please check the <a href="%3$s">trash</a>, and restore page %4$s', 'woo-poly-integration' ), $page_type, $langLocale, $baseURL . 'edit.php?post_status=trash&post_type=page&lang=' . $langSlug, $translation_id );
+									} else {
+										/* translators: 1: WooCommerce page type, 2: Language locale, 3: Post status, 4: Admin edit URL, 5: Page ID. */
+										$warnings[ $page_type . '::' . $langSlug ] = sprintf(
+										__( '%1$s page in language %2$s is in status %3$s and needs to be published for the shop to work properly, check page <a href="%4$s">%5$s</a>', 'woo-poly-integration' ), $page_type, $langLocale, $postStatus, get_edit_post_link( $translation_id, 'link' ), $translation_id );
+									}
 								$failure = true;
 							}
-						} else {
-								$warnings[ $page_type . '::' . $langSlug ] = sprintf(
-							__( '%1$s page in language %2$s was linked in polylang but cannot be found, link will be removed to missing page %3$s', 'woo-poly-integration' ), $page_type, $langLocale, $translation_id );
-							unset( $translations[ $langSlug ] );
+							} else {
+									/* translators: 1: WooCommerce page type, 2: Language locale, 3: Missing page ID. */
+									$warnings[ $page_type . '::' . $langSlug ] = sprintf(
+								__( '%1$s page in language %2$s was linked in polylang but cannot be found, link will be removed to missing page %3$s', 'woo-poly-integration' ), $page_type, $langLocale, $translation_id );
+								unset( $translations[ $langSlug ] );
 							$failure									 = true;
 							$changed									 = true;
 							}

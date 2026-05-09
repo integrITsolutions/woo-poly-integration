@@ -39,10 +39,11 @@ class TranslationsDownloader
         }
 
         $lock_key = 'wpi_xlate_dl_lock_' . sanitize_key((string) $locale);
-        if (get_transient($lock_key)) {
+        $lock_group = 'wpi-translation-locks';
+        $lock_acquired = wp_cache_add($lock_key, 1, $lock_group, 5 * MINUTE_IN_SECONDS);
+        if (!$lock_acquired) {
             return false;
         }
-        set_transient($lock_key, 1, 5 * MINUTE_IN_SECONDS);
 
         $temp_file = null;
 
@@ -50,9 +51,10 @@ class TranslationsDownloader
 
             /* Check if we can download */
             if (!static::isAvaliable($locale)) {
+                /* translators: 1: Locale display name with locale code, 2: Repository URL. */
                 $notAvaliable = sprintf(
                         __(
-                                'WooCommerce translation %s can not be found in : <a href="%2$s">%2$s</a>', 'woo-poly-integration'
+                                'WooCommerce translation %1$s can not be found in : <a href="%2$s">%2$s</a>', 'woo-poly-integration'
                         ), sprintf('%s(%s)', $name, $locale), static::getRepoUrl()
                 );
 
@@ -60,8 +62,9 @@ class TranslationsDownloader
             }
 
             /* Download the language pack */
+            /* translators: 1: Locale display name with locale code, 2: Repository URL. */
             $cantDownload = sprintf(
-                    __('Unable to download WooCommerce translation %s from : <a href="%2$s">%2$s</a>', 'woo-poly-integration'), sprintf('%s(%s)', $name, $locale), static::getRepoUrl()
+                    __('Unable to download WooCommerce translation %1$s from : <a href="%2$s">%2$s</a>', 'woo-poly-integration'), sprintf('%s(%s)', $name, $locale), static::getRepoUrl()
             );
 
             /* Unzip destination: wp-content/languages/plugins directory */
@@ -117,7 +120,7 @@ class TranslationsDownloader
                 throw new \RuntimeException($cantDownload);
             }
         } finally {
-            delete_transient($lock_key);
+            wp_cache_delete($lock_key, $lock_group);
 
             if (isset($temp_file) && is_string($temp_file) && file_exists($temp_file)) {
                 @unlink($temp_file);

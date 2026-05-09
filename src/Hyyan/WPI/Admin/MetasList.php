@@ -35,19 +35,12 @@ class MetasList extends AbstractSettings
         return array(
             array(
                 'title' => __('Metas List', 'woo-poly-integration'),
-                'desc' => __(
-                        'The section will allow you to control which metas should be
-                         synced between products and their translations. The default
-                         values are appropriate for the large majority of the users.
-                         It is safe to ignore these settings if you do not understand
-                         their meaning. Please ignore this section if you do not
-                         understand the meaning of this.
-                        ', 'woo-poly-integration'
-                ) . ' ' . __(
-                        'For more information please see:', 'woo-poly-integration'
-                ) . ' <a target="_blank" href="https://github.com/hyyan/woo-poly-integration/wiki/Settings-Metas">' .
-                    __('documentation pages', 'woo-poly-integration') . '</a>.'
-                ,
+                /* translators: 1: Opening link tag to metas documentation, 2: Closing link tag. */
+                'desc' => sprintf(
+                    __('The section will allow you to control which metas should be synced between products and their translations. The default values are appropriate for the large majority of the users. It is safe to ignore these settings if you do not understand their meaning. Please ignore this section if you do not understand the meaning of this. For more information please see: %1$sdocumentation pages%2$s.', 'woo-poly-integration'),
+                    '<a target="_blank" href="https://github.com/hyyan/woo-poly-integration/wiki/Settings-Metas">',
+                    '</a>'
+                ),
             ),
         );
     }

@@ -162,7 +162,7 @@ class Gateways
      */
     public function registerGatewayStringsForTranslation()
     {
-        if (function_exists('pll_register_string') && !empty($this->enabledGateways)) {
+        if (is_admin() && function_exists('pll_register_string') && !empty($this->enabledGateways)) {
             foreach ($this->enabledGateways as $gateway) {
                 $settings = get_option($gateway->plugin_id.$gateway->id.'_settings');
 

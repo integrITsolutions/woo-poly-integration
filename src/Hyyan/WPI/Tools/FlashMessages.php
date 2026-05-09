@@ -94,11 +94,12 @@ final class FlashMessages
                     false : true;
 
             if (true === $display || !@$message['displayed']) {
-                $message['classes'][] = 'is-dismissible notice';
-                $classesString = implode(' ', $message['classes']);
-                printf(
-                        '<div class="%s"><p>%s</p></div>', $classesString, $message['message']
-                );
+                $classes = isset($message['classes']) ? (array) $message['classes'] : array();
+                $classes[] = 'is-dismissible notice';
+                $class_attr = esc_attr(implode(' ', $classes));
+                $message_html = wp_kses_post((string) $message['message']);
+
+                echo '<div class="' . $class_attr . '"><p>' . $message_html . '</p></div>';
             }
         }
 

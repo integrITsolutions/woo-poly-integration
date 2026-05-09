@@ -667,10 +667,12 @@ class Meta
             // price
             'polylang' => array(
                 'name' => __('Polylang Metas', 'woo-poly-integration'),
-                'desc' => __('To control these values please check ', 'woo-poly-integration') .
-                    ' <a href="' . get_admin_url() . 'admin.php?page=mlang_settings">' .
-                    __('Polylang admin menu "Languages, Settings"') . '</a> ' .
-                    __('Synchronisation section values for Page order, Featured image, Comment Status', 'woo-poly-integration'),
+                /* translators: 1: Opening link tag to Polylang settings page, 2: Closing link tag. */
+                'desc' => sprintf(
+                    __('To control these values please check %1$sPolylang admin menu "Languages, Settings"%2$s Synchronisation section values for Page order, Featured image, Comment Status', 'woo-poly-integration'),
+                    '<a href="' . esc_url(get_admin_url(null, 'admin.php?page=mlang_settings')) . '">',
+                    '</a>'
+                ),
                 'metas' => array(
                     'menu_order',           //controlled by Polylang Languages, Settings, Page order
                     '_thumbnail_id',        //controlled by Polylang Languages, Settings, Featured image
@@ -705,10 +707,12 @@ class Meta
             // attributes
             'Attributes' => array(
                 'name' => __('Attributes Metas', 'woo-poly-integration'),
-                'desc' => __('To select individual Product Attributes for translation or synchronization, turn on here and check', 'woo-poly-integration') .
-                    ' <a href="' . get_admin_url() . 'admin.php?page=mlang_settings">' .
-                    __('Polylang admin menu "Languages, Settings"') . '</a> ' .
-                    __(' "Custom post types and Taxonomies", "Custom Taxonomies"', 'woo-poly-integration'),
+                /* translators: 1: Opening link tag to Polylang settings page, 2: Closing link tag. */
+                'desc' => sprintf(
+                    __('To select individual Product Attributes for translation or synchronization, turn on here and check %1$sPolylang admin menu "Languages, Settings"%2$s "Custom post types and Taxonomies", "Custom Taxonomies"', 'woo-poly-integration'),
+                    '<a href="' . esc_url(get_admin_url(null, 'admin.php?page=mlang_settings')) . '">',
+                    '</a>'
+                ),
                 'metas' => array(
                     '_product_attributes',
                     '_custom_product_attributes',

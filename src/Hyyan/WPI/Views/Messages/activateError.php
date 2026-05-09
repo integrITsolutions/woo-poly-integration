@@ -23,9 +23,23 @@ if (!defined('ABSPATH')) {
 <hr>
 <?php _e('Plugins : ', 'woo-poly-integration'); ?>
 <a href="https://wordpress.org/plugins/woocommerce/">
-    <?php printf('%s V%s', _e('WooCommerce', 'woo-poly-integration'), Hyyan\WPI\Plugin::WOOCOMMERCE_VERSION); ?>
+    <?php
+    /* translators: 1: Plugin name, 2: Required minimum version. */
+    printf(
+        esc_html__('%1$s V%2$s', 'woo-poly-integration'),
+        esc_html__('WooCommerce', 'woo-poly-integration'),
+        esc_html(Hyyan\WPI\Plugin::WOOCOMMERCE_VERSION)
+    );
+    ?>
 </a>
 |
 <a href="https://wordpress.org/plugins/polylang/">
-    <?php printf('%s V%s', _e('Polylang', 'woo-poly-integration'), Hyyan\WPI\Plugin::POLYLANG_VERSION); ?>
+    <?php
+    /* translators: 1: Plugin name, 2: Required minimum version. */
+    printf(
+        esc_html__('%1$s V%2$s', 'woo-poly-integration'),
+        esc_html__('Polylang', 'woo-poly-integration'),
+        esc_html(Hyyan\WPI\Plugin::POLYLANG_VERSION)
+    );
+    ?>
 </a>

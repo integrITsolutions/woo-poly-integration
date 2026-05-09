@@ -54,7 +54,7 @@ class Attributes implements TaxonomiesInterface
     {
         global $polylang, $woocommerce;
 
-        if (!$polylang || !$woocommerce) {
+        if (!is_admin() || !function_exists('pll_register_string') || !$polylang || !$woocommerce) {
             return false;
         }
 

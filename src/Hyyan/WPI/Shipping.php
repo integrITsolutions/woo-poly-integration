@@ -136,7 +136,7 @@ class Shipping
      */
     public function registerShippingStringsForTranslation()
     {
-        if (function_exists('pll_register_string')) {
+        if (is_admin() && function_exists('pll_register_string')) {
             $shipping_methods = $this->getActiveShippingMethods();
 
             foreach ($shipping_methods as $method_id => $plugin_id) {

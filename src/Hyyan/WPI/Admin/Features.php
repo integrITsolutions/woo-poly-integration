@@ -36,13 +36,12 @@ class Features extends AbstractSettings
         return array(
             array(
                 'title' => __('Features', 'woo-poly-integration'),
-                'desc' => __(
-                        ' The section will allow you to Enable/Disable
-                          Plugin Features.', 'woo-poly-integration'
-                ) . ' ' . __(
-                        'For more information please see:', 'woo-poly-integration'
-                ) . ' <a target="_blank" href="https://github.com/hyyan/woo-poly-integration/wiki/Settings---Features"> ' .
-                    __('documentation pages', 'woo-poly-integration') . '</a>.',
+                /* translators: 1: Opening link tag to features documentation, 2: Closing link tag. */
+                'desc' => sprintf(
+                    __('The section will allow you to Enable/Disable Plugin Features. For more information please see: %1$sdocumentation pages%2$s.', 'woo-poly-integration'),
+                    '<a target="_blank" href="https://github.com/hyyan/woo-poly-integration/wiki/Settings---Features">',
+                    '</a>'
+                ),
             ),
         );
     }

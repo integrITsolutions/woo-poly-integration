@@ -38,6 +38,7 @@ foreach ($options_to_delete as $opt) {
 // Transients.
 $transients_to_delete = array(
     'wpi_v2_migration_result',
+    'wpi_coupons_ids',
     'coupons-ids',
 );
 
@@ -46,6 +47,16 @@ foreach ($transients_to_delete as $t) {
     if (is_multisite()) {
         delete_site_transient($t);
     }
+}
+
+// Dynamic translation-download lock keys include locale suffixes.
+// Direct SQL is required because the Transients API does not support wildcard deletion.
+global $wpdb;
+$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", '_transient_wpi_xlate_dl_lock_%'));
+$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", '_transient_timeout_wpi_xlate_dl_lock_%'));
+if (is_multisite()) {
+    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s", '_site_transient_wpi_xlate_dl_lock_%'));
+    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s", '_site_transient_timeout_wpi_xlate_dl_lock_%'));
 }
 
 // Note: order language meta `_hyyan_wpi_language` and Polylang language taxonomy
