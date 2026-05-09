@@ -1,0 +1,433 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - button "Need help?" [ref=e4] [cursor=pointer]:
+      - img [ref=e5]
+    - generic [ref=e7]:
+      - complementary [ref=e9]:
+        - navigation "Sidebar" [ref=e10]:
+          - button "IntegrIT Solutions IntegrIT Solutions" [ref=e12] [cursor=pointer]:
+            - img "IntegrIT Solutions" [ref=e14]:
+              - generic [ref=e15]: I
+            - generic [ref=e16]: IntegrIT Solutions
+            - img [ref=e18]
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - generic [ref=e22]:
+                - img [ref=e24]
+                - text: Premium trial
+                - generic [ref=e26]: (2 weeks left)
+              - link "Subscribe" [ref=e28] [cursor=pointer]:
+                - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/plans
+            - generic [ref=e30]:
+              - link "Search" [ref=e31] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/search
+                - img [ref=e33]
+                - text: Search
+              - link "Notifications" [ref=e35] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/inbox
+                - img [ref=e37]
+                - text: Notifications
+              - link "Messages" [ref=e39] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/messaging
+                - img [ref=e41]
+                - text: Messages
+              - link "Dashboards" [ref=e43] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/group-reports/dashboards
+                - img [ref=e45]
+                - text: Dashboards
+              - link "folk assistants" [ref=e47] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/assistants
+                - img [ref=e49]
+                - text: folk assistants
+          - generic [ref=e51]:
+            - region "My groups" [ref=e53]:
+              - generic [ref=e54]:
+                - generic [ref=e57] [cursor=pointer]: My groups
+                - generic [ref=e58]
+            - generic [ref=e94]:
+              - link "Settings" [ref=e95] [cursor=pointer]:
+                - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/profile
+                - img [ref=e97]
+                - text: Settings
+              - link "Invite members" [ref=e99] [cursor=pointer]:
+                - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/network-members?invite=true
+                - img [ref=e101]
+                - text: Invite members
+      - main [ref=e103]:
+        - generic [ref=e104]:
+          - generic [ref=e105]:
+            - generic [ref=e106]:
+              - generic [ref=e107]:
+                - generic [ref=e109]
+                - button "Add to favorites" [ref=e114] [cursor=pointer]
+              - generic [ref=e117]:
+                - generic "Group members" [ref=e119]
+                - button "Share" [ref=e123] [cursor=pointer]
+                - button "Import, export, duplicate…" [ref=e124] [cursor=pointer]
+            - generic [ref=e127]:
+              - generic [ref=e129]:
+                - generic
+                - tablist [ref=e131]
+                - generic
+              - button "Create new view" [ref=e147] [cursor=pointer]:
+                - img [ref=e148]
+            - generic [ref=e150]:
+              - generic [ref=e151]:
+                - button "Add people" [ref=e153] [cursor=pointer]
+                - button "Email all" [ref=e157] [cursor=pointer]
+                - button "Enrich all" [ref=e161] [cursor=pointer]
+              - generic [ref=e168]:
+                - button "32 hidden fields" [expanded] [ref=e169] [cursor=pointer]
+                - button "Filter view" [ref=e175] [cursor=pointer]
+                - button "Group by Status" [ref=e178] [cursor=pointer]
+                - button "Search" [ref=e181] [cursor=pointer]
+          - listbox [ref=e184]:
+            - region "No status column" [ref=e186]:
+              - 'button "No status Total people in column: 2 Add people Hide column…" [ref=e187]':
+                - generic [ref=e188]
+              - generic [ref=e204]:
+                - list [ref=e205]
+                - generic [ref=e231]
+            - region "First Touch column" [ref=e401]:
+              - 'button "First Touch Total people in column: 0 Add people Rename, hide, remove column…" [ref=e402]':
+                - generic [ref=e235]
+              - generic [ref=e252]:
+                - list
+                - generic [ref=e254]
+            - region "Qualified column" [ref=e256]:
+              - 'button "Qualified Total people in column: 0 Add people Rename, hide, remove column…" [ref=e257]':
+                - generic [ref=e258]
+              - generic [ref=e275]:
+                - list
+                - generic [ref=e277]
+            - region "Long-term Nurture column" [ref=e468]:
+              - 'button "Long-term Nurture Total people in column: 0 Add people Rename, hide, remove column…" [ref=e469]':
+                - generic [ref=e281]
+              - generic [ref=e298]:
+                - list
+                - generic [ref=e300]
+            - region "Closed-Won column" [ref=e535]:
+              - 'button "Closed-Won Total people in column: 0 Add people Rename, hide, remove column…" [ref=e536]':
+                - generic [ref=e304]
+              - generic [ref=e321]:
+                - list
+                - generic [ref=e323]
+            - region "Closed-Lost column" [ref=e601]:
+              - 'button "Closed-Lost Total people in column: 0 Add people Rename, hide, remove column…" [ref=e602]':
+                - generic [ref=e327]
+              - generic [ref=e344]:
+                - list
+                - generic [ref=e346]
+            - region "Connected column" [ref=e625]:
+              - 'button "Connected Total people in column: 0 Add people Rename, hide, remove column…" [ref=e626]':
+                - generic [ref=e627]
+              - generic [ref=e644]:
+                - list
+                - generic [ref=e646]
+            - region "Engaged column" [ref=e652]:
+              - 'button "Engaged Total people in column: 0 Add people Rename, hide, remove column…" [ref=e653]':
+                - generic [ref=e654]
+              - generic [ref=e671]:
+                - list
+                - generic [ref=e673]
+            - region "Call Booked column" [ref=e679]:
+              - 'button "Call Booked Total people in column: 0 Add people Rename, hide, remove column…" [ref=e680]':
+                - generic [ref=e681]
+              - generic [ref=e698]:
+                - list
+                - generic [ref=e700]
+            - region "Proposal column" [ref=e706]:
+              - 'button "Proposal Total people in column: 0 Add people Rename, hide, remove column…" [ref=e707]':
+                - generic [ref=e708]
+              - generic [ref=e725]:
+                - list
+                - generic [ref=e727]
+            - status [ref=e347]
+            - button "New status" [ref=e728] [cursor=pointer]
+  - generic:
+    - region "Notifications alt+T"
+  - iframe [ref=e350]:
+    
+  - status [ref=e351]
+  - dialog [ref=e730]:
+    - generic [ref=e731]:
+      - img [ref=e733]
+      - generic [ref=e735]: Fields
+      - combobox "Fields" [expanded] [active] [ref=e736]
+    - listbox "Fields" [ref=e737]:
+      - group "32 hidden fields" [ref=e738]:
+        - heading "32 hidden fields" [level=3] [ref=e739]
+        - button "Reorder field Companies Hide field" [ref=e740]:
+          - option "Reorder field Companies Hide field" [checked] [ref=e741] [cursor=pointer]:
+            - button "Reorder field" [ref=e742]:
+              - img [ref=e744]
+            - generic [ref=e746]: Companies
+            - button "Hide field" [ref=e748]:
+              - img [ref=e749]
+        - button "Reorder field Job title Hide field" [ref=e751]:
+          - option "Reorder field Job title Hide field" [checked] [ref=e752] [cursor=pointer]:
+            - button "Reorder field" [ref=e753]:
+              - img [ref=e755]
+            - generic [ref=e757]: Job title
+            - button "Hide field" [ref=e759]:
+              - img [ref=e760]
+        - button "Reorder field Emails Show field" [ref=e762]:
+          - option "Reorder field Emails Show field" [ref=e763] [cursor=pointer]:
+            - button "Reorder field" [ref=e764]:
+              - img [ref=e766]
+            - generic [ref=e768]: Emails
+            - button "Show field" [ref=e770]:
+              - img [ref=e771]
+        - button "Reorder field My last interaction Show field" [ref=e773]:
+          - option "Reorder field My last interaction Show field" [ref=e774] [cursor=pointer]:
+            - button "Reorder field" [ref=e775]:
+              - img [ref=e777]
+            - generic [ref=e779]: My last interaction
+            - button "Show field" [ref=e781]:
+              - img [ref=e782]
+        - button "Reorder field Team last interaction Show field" [ref=e784]:
+          - option "Reorder field Team last interaction Show field" [ref=e785] [cursor=pointer]:
+            - button "Reorder field" [ref=e786]:
+              - img [ref=e788]
+            - generic [ref=e790]: Team last interaction
+            - button "Show field" [ref=e792]:
+              - img [ref=e793]
+        - button "Reorder field Last interaction by Show field" [ref=e795]:
+          - option "Reorder field Last interaction by Show field" [ref=e796] [cursor=pointer]:
+            - button "Reorder field" [ref=e797]:
+              - img [ref=e799]
+            - generic [ref=e801]: Last interaction by
+            - button "Show field" [ref=e803]:
+              - img [ref=e804]
+        - button "Reorder field Urls Show field" [ref=e806]:
+          - option "Reorder field Urls Show field" [ref=e807] [cursor=pointer]:
+            - button "Reorder field" [ref=e808]:
+              - img [ref=e810]
+            - generic [ref=e812]: Urls
+            - button "Show field" [ref=e814]:
+              - img [ref=e815]
+        - button "Reorder field Description Show field" [ref=e817]:
+          - option "Reorder field Description Show field" [ref=e818] [cursor=pointer]:
+            - button "Reorder field" [ref=e819]:
+              - img [ref=e821]
+            - generic [ref=e823]: Description
+            - button "Show field" [ref=e825]:
+              - img [ref=e826]
+        - button "Reorder field My total interactions Show field" [ref=e828]:
+          - option "Reorder field My total interactions Show field" [ref=e829] [cursor=pointer]:
+            - button "Reorder field" [ref=e830]:
+              - img [ref=e832]
+            - generic [ref=e834]: My total interactions
+            - button "Show field" [ref=e836]:
+              - img [ref=e837]
+        - button "Reorder field Strongest connection Show field" [ref=e839]:
+          - option "Reorder field Strongest connection Show field" [ref=e840] [cursor=pointer]:
+            - button "Reorder field" [ref=e841]:
+              - img [ref=e843]
+            - generic [ref=e845]: Strongest connection
+            - button "Show field" [ref=e847]:
+              - img [ref=e848]
+        - button "Reorder field Phone numbers Show field" [ref=e850]:
+          - option "Reorder field Phone numbers Show field" [ref=e851] [cursor=pointer]:
+            - button "Reorder field" [ref=e852]:
+              - img [ref=e854]
+            - generic [ref=e856]: Phone numbers
+            - button "Show field" [ref=e858]:
+              - img [ref=e859]
+        - button "Reorder field Addresses Show field" [ref=e861]:
+          - option "Reorder field Addresses Show field" [ref=e862] [cursor=pointer]:
+            - button "Reorder field" [ref=e863]:
+              - img [ref=e865]
+            - generic [ref=e867]: Addresses
+            - button "Show field" [ref=e869]:
+              - img [ref=e870]
+        - button "Reorder field First name Show field" [ref=e872]:
+          - option "Reorder field First name Show field" [ref=e873] [cursor=pointer]:
+            - button "Reorder field" [ref=e874]:
+              - img [ref=e876]
+            - generic [ref=e878]: First name
+            - button "Show field" [ref=e880]:
+              - img [ref=e881]
+        - button "Reorder field Last name Show field" [ref=e883]:
+          - option "Reorder field Last name Show field" [ref=e884] [cursor=pointer]:
+            - button "Reorder field" [ref=e885]:
+              - img [ref=e887]
+            - generic [ref=e889]: Last name
+            - button "Show field" [ref=e891]:
+              - img [ref=e892]
+        - button "Reorder field Birthday Show field" [ref=e894]:
+          - option "Reorder field Birthday Show field" [ref=e895] [cursor=pointer]:
+            - button "Reorder field" [ref=e896]:
+              - img [ref=e898]
+            - generic [ref=e900]: Birthday
+            - button "Show field" [ref=e902]:
+              - img [ref=e903]
+        - button "Reorder field Gender Show field" [ref=e905]:
+          - option "Reorder field Gender Show field" [ref=e906] [cursor=pointer]:
+            - button "Reorder field" [ref=e907]:
+              - img [ref=e909]
+            - generic [ref=e911]: Gender
+            - button "Show field" [ref=e913]:
+              - img [ref=e914]
+        - button "Reorder field Groups Show field" [ref=e916]:
+          - option "Reorder field Groups Show field" [ref=e917] [cursor=pointer]:
+            - button "Reorder field" [ref=e918]:
+              - img [ref=e920]
+            - generic [ref=e922]: Groups
+            - button "Show field" [ref=e924]:
+              - img [ref=e925]
+        - button "Reorder field Created at Show field" [ref=e927]:
+          - option "Reorder field Created at Show field" [ref=e928] [cursor=pointer]:
+            - button "Reorder field" [ref=e929]:
+              - img [ref=e931]
+            - generic [ref=e933]: Created at
+            - button "Show field" [ref=e935]:
+              - img [ref=e936]
+        - button "Reorder field Created by Show field" [ref=e938]:
+          - option "Reorder field Created by Show field" [ref=e939] [cursor=pointer]:
+            - button "Reorder field" [ref=e940]:
+              - img [ref=e942]
+            - generic [ref=e944]: Created by
+            - button "Show field" [ref=e946]:
+              - img [ref=e947]
+        - button "Reorder field Added to group at Show field" [ref=e949]:
+          - option "Reorder field Added to group at Show field" [ref=e950] [cursor=pointer]:
+            - button "Reorder field" [ref=e951]:
+              - img [ref=e953]
+            - generic [ref=e955]: Added to group at
+            - button "Show field" [ref=e957]:
+              - img [ref=e958]
+        - button "Reorder field Added to group by Show field" [ref=e960]:
+          - option "Reorder field Added to group by Show field" [ref=e961] [cursor=pointer]:
+            - button "Reorder field" [ref=e962]:
+              - img [ref=e964]
+            - generic [ref=e966]: Added to group by
+            - button "Show field" [ref=e968]:
+              - img [ref=e969]
+        - button "Reorder field Emails (company) Show field" [ref=e971]:
+          - option "Reorder field Emails (company) Show field" [ref=e972] [cursor=pointer]:
+            - button "Reorder field" [ref=e973]:
+              - img [ref=e975]
+            - generic [ref=e977]: Emails (company)
+            - button "Show field" [ref=e979]:
+              - img [ref=e980]
+        - button "Reorder field Urls (company) Show field" [ref=e982]:
+          - option "Reorder field Urls (company) Show field" [ref=e983] [cursor=pointer]:
+            - button "Reorder field" [ref=e984]:
+              - img [ref=e986]
+            - generic [ref=e988]: Urls (company)
+            - button "Show field" [ref=e990]:
+              - img [ref=e991]
+        - button "Reorder field Phone numbers (company) Show field" [ref=e993]:
+          - option "Reorder field Phone numbers (company) Show field" [ref=e994] [cursor=pointer]:
+            - button "Reorder field" [ref=e995]:
+              - img [ref=e997]
+            - generic [ref=e999]: Phone numbers (company)
+            - button "Show field" [ref=e1001]:
+              - img [ref=e1002]
+        - button "Reorder field Addresses (company) Show field" [ref=e1004]:
+          - option "Reorder field Addresses (company) Show field" [ref=e1005] [cursor=pointer]:
+            - button "Reorder field" [ref=e1006]:
+              - img [ref=e1008]
+            - generic [ref=e1010]: Addresses (company)
+            - button "Show field" [ref=e1012]:
+              - img [ref=e1013]
+        - button "Reorder field Funding raised (company) Show field" [ref=e1015]:
+          - option "Reorder field Funding raised (company) Show field" [ref=e1016] [cursor=pointer]:
+            - button "Reorder field" [ref=e1017]:
+              - img [ref=e1019]
+            - generic [ref=e1021]: Funding raised (company)
+            - button "Show field" [ref=e1023]:
+              - img [ref=e1024]
+        - button "Reorder field Last funding date (company) Show field" [ref=e1026]:
+          - option "Reorder field Last funding date (company) Show field" [ref=e1027] [cursor=pointer]:
+            - button "Reorder field" [ref=e1028]:
+              - img [ref=e1030]
+            - generic [ref=e1032]: Last funding date (company)
+            - button "Show field" [ref=e1034]:
+              - img [ref=e1035]
+        - button "Reorder field Foundation year (company) Show field" [ref=e1037]:
+          - option "Reorder field Foundation year (company) Show field" [ref=e1038] [cursor=pointer]:
+            - button "Reorder field" [ref=e1039]:
+              - img [ref=e1041]
+            - generic [ref=e1043]: Foundation year (company)
+            - button "Show field" [ref=e1045]:
+              - img [ref=e1046]
+        - button "Reorder field Employee range (company) Show field" [ref=e1048]:
+          - option "Reorder field Employee range (company) Show field" [ref=e1049] [cursor=pointer]:
+            - button "Reorder field" [ref=e1050]:
+              - img [ref=e1052]
+            - generic [ref=e1054]: Employee range (company)
+            - button "Show field" [ref=e1056]:
+              - img [ref=e1057]
+        - button "Reorder field Industry (company) Show field" [ref=e1059]:
+          - option "Reorder field Industry (company) Show field" [ref=e1060] [cursor=pointer]:
+            - button "Reorder field" [ref=e1061]:
+              - img [ref=e1063]
+            - generic [ref=e1065]: Industry (company)
+            - button "Show field" [ref=e1067]:
+              - img [ref=e1068]
+        - button "Reorder field Channel Hide field" [ref=e1070]:
+          - option "Reorder field Channel Hide field" [checked] [ref=e1071] [cursor=pointer]:
+            - button "Reorder field" [ref=e1072]:
+              - img [ref=e1074]
+            - generic [ref=e1076]: Channel
+            - button "Hide field" [ref=e1078]:
+              - img [ref=e1079]
+        - button "Reorder field Closed date Show field" [ref=e1081]:
+          - option "Reorder field Closed date Show field" [ref=e1082] [cursor=pointer]:
+            - button "Reorder field" [ref=e1083]:
+              - img [ref=e1085]
+            - generic [ref=e1087]: Closed date
+            - button "Show field" [ref=e1089]:
+              - img [ref=e1090]
+        - button "Reorder field Company size Hide field" [ref=e1092]:
+          - option "Reorder field Company size Hide field" [checked] [ref=e1093] [cursor=pointer]:
+            - button "Reorder field" [ref=e1094]:
+              - img [ref=e1096]
+            - generic [ref=e1098]: Company size
+            - button "Hide field" [ref=e1100]:
+              - img [ref=e1101]
+        - button "Reorder field Company vertical Show field" [ref=e1103]:
+          - option "Reorder field Company vertical Show field" [ref=e1104] [cursor=pointer]:
+            - button "Reorder field" [ref=e1105]:
+              - img [ref=e1107]
+            - generic [ref=e1109]: Company vertical
+            - button "Show field" [ref=e1111]:
+              - img [ref=e1112]
+        - button "Reorder field Deal value Hide field" [ref=e1114]:
+          - option "Reorder field Deal value Hide field" [checked] [ref=e1115] [cursor=pointer]:
+            - button "Reorder field" [ref=e1116]:
+              - img [ref=e1118]
+            - generic [ref=e1120]: Deal value
+            - button "Hide field" [ref=e1122]:
+              - img [ref=e1123]
+        - button "Reorder field Lost reason Show field" [ref=e1125]:
+          - option "Reorder field Lost reason Show field" [ref=e1126] [cursor=pointer]:
+            - button "Reorder field" [ref=e1127]:
+              - img [ref=e1129]
+            - generic [ref=e1131]: Lost reason
+            - button "Show field" [ref=e1133]:
+              - img [ref=e1134]
+        - button "Reorder field Next steps Hide field" [ref=e1136]:
+          - option "Reorder field Next steps Hide field" [checked] [ref=e1137] [cursor=pointer]:
+            - button "Reorder field" [ref=e1138]:
+              - img [ref=e1140]
+            - generic [ref=e1142]: Next steps
+            - button "Hide field" [ref=e1144]:
+              - img [ref=e1145]
+        - button "Reorder field Prospect owner Hide field" [ref=e1147]:
+          - option "Reorder field Prospect owner Hide field" [checked] [ref=e1148] [cursor=pointer]:
+            - button "Reorder field" [ref=e1149]:
+              - img [ref=e1151]
+            - generic [ref=e1153]: Prospect owner
+            - button "Hide field" [ref=e1155]:
+              - img [ref=e1156]
+        - button "Reorder field Status Show field" [ref=e1158]:
+          - option "Reorder field Status Show field" [ref=e1159] [cursor=pointer]:
+            - button "Reorder field" [ref=e1160]:
+              - img [ref=e1162]
+            - generic [ref=e1164]: Status
+            - button "Show field" [ref=e1166]:
+              - img [ref=e1167]
+        - status [ref=e1169]

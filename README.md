@@ -1,20 +1,26 @@
-# WordPress WooCommerce Polylang Integration
+# Woo-Poly Integration (Modernized Fork)
 
-[![project status](http://www.repostatus.org/badges/latest/active.svg)](http://www.gitchecker.com/hyyan/woo-poly-integration)
-[![Latest Stable Version](https://poser.pugx.org/hyyan/woo-poly-integration/v/stable.svg)](https://packagist.org/packages/hyyan/woo-poly-integration)
-[![Wordpress plugin](http://img.shields.io/wordpress/plugin/v/woo-poly-integration.svg)](https://wordpress.org/plugins/woo-poly-integration/)
-[![Wordpress](http://img.shields.io/wordpress/plugin/dt/woo-poly-integration.svg)](https://wordpress.org/plugins/woo-poly-integration/)
-[![Wordpress rating](http://img.shields.io/wordpress/plugin/r/woo-poly-integration.svg)](https://wordpress.org/plugins/woo-poly-integration/)
-[![License](https://poser.pugx.org/hyyan/woo-poly-integration/license.svg)](https://packagist.org/packages/hyyan/woo-poly-integration)
+> **This is a fork of the archived [hyyan/woo-poly-integration](https://github.com/hyyan/woo-poly-integration) plugin (last upstream release 2021).**
+> Maintained by IntegrIT Solutions to bring HPOS, Cart/Checkout block, Polylang 3.7+ options-object, and WordPress 6.6+ / WooCommerce 9.0+ / PHP 7.4+ compatibility back to the codebase.
+>
+> Upstream is unmaintained; this fork tracks current versions of WP, WC, and Polylang Free.
 
-**Given that I am not using Wordpress these days and I haven't really been using WooPoly for a while. I am looking for maintainers to take over this project.
-If you're interested, please reply to this [issue](https://github.com/hyyan/woo-poly-integration/issues/410) or get in touch with me via email: hyyanaf [at] gmail [dot] com**
+## Compatibility (v2.0.0-alpha.1)
+
+| Component | Minimum | Tested up to |
+|---|---|---|
+| WordPress | 6.6 | 6.9 |
+| WooCommerce | 9.0 | 10.7 |
+| Polylang Free | 3.4.5 | 3.8 |
+| PHP | 7.4 | 8.3 |
+
+**HPOS** (High-Performance Order Storage) and **Cart/Checkout block** compatibility are both declared `true` since v2.0.0-alpha.1. Order language storage is dual-written to (a) the WooCommerce order CRUD meta `_hyyan_wpi_language` (HPOS-native) and (b) Polylang's `language` taxonomy. Block cart line items are translated at session-load time via `woocommerce_get_cart_item_from_session` so the translated product flows through Store API responses naturally.
 
 ---
 
-[This plugin](https://github.com/hyyan/woo-poly-integration/) makes it possible to run multilingual e-commerce sites using
-WooCommerce and Polylang.It makes products and store pages translatable, lets
-visitors switch languages and order products in their language. and all that from
+[This plugin](https://github.com/IntegrITSolutions/woo-poly-integration) makes it possible to run multilingual e-commerce sites using
+WooCommerce and Polylang. It makes products and store pages translatable, lets
+visitors switch languages and order products in their language — all from
 the same interface you love.
 
 [Read the full docs](https://github.com/hyyan/woo-poly-integration/wiki)
@@ -44,15 +50,14 @@ the same interface you love.
 
 ## What you need to know about this plugin
 
-1. WooCommerce and therefore this plugin needs `PHP7 and above`
-2. This plugin is developed in sync with [Polylang](https://wordpress.org/plugins/polylang)
-   and [WooCommerce](https://wordpress.org/plugins/woocommerce/) latest version
-3. The plugin support variable products , but using them will `disallow you to
-   change the default language` , because of the way the plugin implements this
-   support. So you have to make sure to choose the default language before you start
-   adding new variable products.
-4. Polylang URL modifications method `The language is set from content` is not
-   supported
+1. Requires PHP 7.4 or higher (Polylang 3.8 and WooCommerce 10.7 also require 7.4+).
+2. Developed in sync with [Polylang Free](https://wordpress.org/plugins/polylang)
+   and [WooCommerce](https://wordpress.org/plugins/woocommerce/) latest versions. Polylang Pro is supported but not required (no `polylang` entry in `Requires Plugins` header so Pro users aren't blocked from activation).
+3. Variable products are supported, but using them will `disallow you to
+   change the default language`, because of how the plugin implements this
+   support. Choose the default language before adding any variable products.
+4. Polylang URL modification mode `The language is set from content` is not
+   supported (deprecated for new installs in Polylang 3.7+ anyway).
 
 ## How to install
 

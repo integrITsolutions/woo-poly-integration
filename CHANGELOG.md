@@ -1,5 +1,66 @@
 # Changelog
 
+## 2.0.0-alpha.1 — Modernization fork (IntegrIT Solutions)
+
+This release is a major fork of the abandoned `hyyan/woo-poly-integration` plugin
+(last upstream release v1.5.1, mid-2021). It brings the plugin up to current
+WordPress / WooCommerce / Polylang requirements.
+
+### Compatibility (target stack)
+
+| | Minimum | Tested up to |
+|---|---|---|
+| WordPress | 6.6 | 6.9 |
+| WooCommerce | 9.0 | 10.7 |
+| Polylang Free | 3.4.5 | 3.8 |
+| PHP | 7.4 | 8.3 |
+
+### Phase A — Foundation
+
+- **Plugin headers**: bumped to current. Added `Update URI` (prevents wp.org auto-updates from clobbering the fork). `Requires Plugins: woocommerce` only — `polylang` intentionally omitted so Polylang Pro users aren't blocked from activation.
+- **Polylang detection**: `function_exists('pll_get_post_language')` instead of `class_exists('Polylang')`. Works for both Polylang Free and Pro.
+- **WP 6.7 i18n JIT fix**: `load_plugin_textdomain()` moved from `plugins_loaded` to `init` priority 1.
+- **HPOS feature compatibility declared** via `before_woocommerce_init` action and `FeaturesUtil::declare_compatibility()` for `custom_order_tables` and `cart_checkout_blocks`.
+- **SQL injection** at `Variation::getRelatedVariation()` (concatenated meta_value) fixed with `$wpdb->prepare()` + `absint()`.
+- **jQuery cookie dependency removed**: `Cart.js` rewritten as a small vanilla-JS adapter that listens for `pll_language` cookie change and triggers `wc_fragment_refresh`. The forked clone of WC's `wc-cart-fragments.js` is removed; we now ride on top of WC's own fragments handler.
+- **Dead infrastructure removed**: `nbproject/`, `.travis.yml`, `deploy.sh`. Replaced with GitHub Actions workflow, PHPCS config (WordPress-Core + PHPCompatibilityWP), PHPStan config, `.editorconfig`.
+- **composer.json**: PHP `>=7.4`; dev dependencies for phpcs/phpstan/wpcs/PHPCompatibilityWP/composer-installers v1+v2.
+
+### Phase B — HPOS + Polylang options object + Order language storage
+
+- **Order language dual-write**: orders now store language to BOTH the order CRUD meta (`_hyyan_wpi_language`, HPOS-native via `wc_orders_meta`) AND Polylang's `language` taxonomy. Read precedence is meta-first with taxonomy fallback. Migration of legacy taxonomy-only orders is exposed as `Hyyan\WPI\Order::migrateLegacyTaxonomyToMeta()` (not auto-run).
+- **Hook coverage** for both checkout flows:
+  - Classic shortcode checkout: `woocommerce_checkout_update_order_meta` (callback receives `int $order_id`).
+  - Block / Store API checkout: `woocommerce_store_api_checkout_update_order_meta` (callback receives `WC_Order`).
+- **Backstop hook** `woocommerce_new_order` for non-checkout order creation paths (admin / REST / programmatic). Conservative: skips `is_admin()`, `WP_CLI`, `REST_REQUEST` to avoid assigning the staff member's UI language to a customer's order.
+- **HPOS-aware `lang` filter**: `woocommerce_order_query_args` translates the `lang` arg into a `meta_query` against `_hyyan_wpi_language`, since `OrdersTableQuery` doesn't trigger Polylang's `parse_query` injection.
+- **Order admin screen detection** handles both legacy `$screen->post_type === 'shop_order'` and HPOS `$screen->id === wc_get_page_screen_id('shop-order')`.
+- **`Polylang::options` 3.7+ support**: new `Hyyan\WPI\Compat\PolylangOptions` wrapper handles the options-object API and falls back to `update_option()` on older versions. Eight v1.x sites that did `update_option('polylang', $array)` directly are refactored. Polylang's published guidance ("`get_option()` and `update_option()` shouldn't be used at all") is now respected.
+- **Deprecated `PLL_Language` properties** (`->search_url`, `->home_url`) replaced with `get_search_url()` / `get_home_url()` method calls (Polylang 3.4 deprecation, properties became `private` in 3.7).
+- **Email language resolution chain** (cron / Action Scheduler safe): order CRUD meta → Polylang taxonomy → site default. Fixes a Phase B+HPOS+sync-off issue where `pll_get_post_language()` could be unreliable in cron contexts.
+- **Reports module dropped**. The legacy `WooCommerce → Reports` integration is removed. The legacy reports system is on Woo's roadmap for retirement and the new wc-admin Analytics has no documented per-language extension API. Plugin no longer hooks `woocommerce_reports_*`.
+- **Code quality**: replaced two `unserialize()` blob defaults in `Plugin::onUpgrade()` with array literals.
+
+### Phase C — Cart / Checkout block compatibility
+
+- **Cart item translation at session-load**: hooks `woocommerce_get_cart_item_from_session` and `woocommerce_add_cart_item` to translate the cart item's `data` (WC_Product), `product_id`, and `variation_id` to the current language. Verified against WC 10.7 source: `CartItemSchema` reads `name`/`description`/`sku` directly from the product object, with no Store API-specific translation hooks for those fields, so this is the only correct integration point.
+- **`data_hash` recompute on translation**: when mutating `product_id`/`variation_id`, the cart item's `data_hash` is recomputed against the translated product. Without this, `WC_Cart_Session::get_cart_from_session()` (line ~207 in WC 10.7) detects a hash mismatch on the next session-load and silently removes the cart item with the message "X has been removed from your cart because it has since been modified". Caught during Phase C self-review before Codex review confirmed.
+- **Store API add-to-cart dedup**: hooks `woocommerce_store_api_add_to_cart_data` (added in WC 8.8) to swap the request `id` to an existing cart line's product/variation when a translation of the same logical product is already present. Required because `WC_Cart::add_to_cart()` applies `woocommerce_add_to_cart_product_id` (which v1.x used for dedup), but `StoreApi\Utilities\CartController::add_to_cart()` does not — Block cart adds would otherwise create parallel cart lines per language. Variation siblings detected via the `_point_to_variation` master-pointer meta linkage. Codex CRITICAL finding from Phase C review.
+- **Variation attribute slug sync**: when translating a variation cart item, `$cart_item['variation']` (the attribute_TAX → term_slug map) is replaced with the translated variation's own attribute map via `WC_Product_Variation::get_variation_attributes()`. Without this, `CartItemSchema::format_variation_data()` would resolve attribute terms via `get_term_by('slug', $source_lang_slug, ...)` and could leak source-language slug values to Block cart. Codex IMPORTANT finding from Phase C review.
+- **Block cart compatibility flag**: `cart_checkout_blocks` feature is declared `true`.
+- **Existing v1.x render-time filters** (`woocommerce_cart_item_product`, `woocommerce_cart_item_product_id`, `woocommerce_cart_item_permalink`, `woocommerce_get_item_data`) kept as safety nets. They're now mostly redundant with the session-load translation but harmless under classic cart and may help edge cases.
+
+### Breaking changes vs v1.x
+
+- Slug not renamed; folder remains `woo-poly-integration` so existing settings and option keys carry forward unchanged. The `Update URI` header redirects updates away from wp.org.
+- `WooCommerce → Reports` integration removed (see above).
+- Minimum PHP raised to 7.4, minimum WordPress to 6.6, minimum WooCommerce to 9.0, minimum Polylang to 3.4.5.
+- Order language storage now dual-written. Existing orders continue to work read-only via the taxonomy fallback; run `Order::migrateLegacyTaxonomyToMeta()` if you want all legacy orders to participate in HPOS-native language filtering.
+
+### Original v1.x changelog follows.
+
+---
+
 ###  1.5.1
 * [fixes #545 keep fields unlocked if products does not exist in default language props mrleemon](https://github.com/hyyan/woo-poly-integration/issues/545)
 * [fixes #549 Quick edit Product synchronisation issues](https://github.com/hyyan/woo-poly-integration/issues/549)

@@ -1,14 +1,17 @@
 <?php
 
 /**
- * This file is part of the hyyan/woo-poly-integration plugin.
- * (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * This file is part of the woo-poly-integration plugin.
+ * Original (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * Modernized fork (c) IntegrIT Solutions.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 namespace Hyyan\WPI;
+
+use Hyyan\WPI\Compat\PolylangOptions;
 
 /**
  * Media.
@@ -34,15 +37,16 @@ class Media
     }
 
     /**
-     * Check if media translation is enable in polylang settings.
+     * Check if media translation is enabled in Polylang settings.
      *
-     * @return bool true if enabled , false otherwise
+     * Reads via PolylangOptions which uses the 3.7+ options-object API where
+     * available, falling back to direct get_option for older versions.
+     *
+     * @return bool true if enabled, false otherwise
      */
     public static function isMediaTranslationEnabled()
     {
-        $options = get_option('polylang');
-
-        return $options['media_support'];
+        return (bool) PolylangOptions::get('media_support', false);
     }
 
     /**

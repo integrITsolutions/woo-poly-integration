@@ -137,13 +137,14 @@ class Coupon
     
     public function adminRegisterCouponStrings()
     {
-        if (is_admin() && (!is_ajax())) {
-        global $pagenow;
-            if ( ($pagenow) && ( $pagenow == 'admin.php' ) && ($_GET[ 'page' ] == 'mlang_strings') ) {
-                  $this->registerCouponStringsForTranslation();
+        if (is_admin() && (!wp_doing_ajax())) {
+            global $pagenow;
+            $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+            if ($pagenow && $pagenow === 'admin.php' && $page === 'mlang_strings') {
+                $this->registerCouponStringsForTranslation();
             }
         }
-	  }
+    }
 
     /**
      * Register coupon titles adn descriptions in Polylang's Strings translations table.

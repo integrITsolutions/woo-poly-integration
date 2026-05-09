@@ -1,7 +1,8 @@
 <?php
 /**
- * This file is part of the hyyan/woo-poly-integration plugin.
- * (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * This file is part of the woo-poly-integration plugin.
+ * Original (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * Modernized fork (c) IntegrIT Solutions.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -29,25 +30,192 @@ class Cart
      */
     public function __construct()
     {
-        // Handle add to cart
+        // Dedupe on add-to-cart for CLASSIC add path (shortcode pages, AJAX from
+        // single-product page): swap the product ID to the canonical cart-line
+        // product ID if a translation of the same logical product is already in
+        // the cart. This filter is NOT applied by the Store API add path — see
+        // `dedupeStoreApiAdd()` for the Block cart equivalent.
         add_filter('woocommerce_add_to_cart_product_id', array($this, 'addToCart'), 10, 1);
 
-        // Handle the translation of displayed porducts in cart
+        // Dedupe on add-to-cart for STORE API (Block cart) path. WC 8.8+ exposes
+        // this filter to mutate add-to-cart request data BEFORE `generate_cart_id`
+        // runs. Without this, a German variant of an already-in-cart English
+        // product would create a second cart line under Block cart, with no
+        // dedup — verified in WC 10.7 source:
+        //   src/StoreApi/Routes/V1/CartAddItem.php:116
+        //   src/StoreApi/Utilities/CartController.php:99-147 (add_to_cart)
+        add_filter('woocommerce_store_api_add_to_cart_data', array($this, 'dedupeStoreApiAdd'), 10, 2);
+
+        // ROOT-CAUSE TRANSLATION (Phase C): swap the cart item's product reference
+        // at session-load and add-to-cart time. This means by the time downstream
+        // consumers (Block cart Store API, classic cart rendering, mini-cart
+        // fragments, checkout) read the cart, the product is already in the user's
+        // current language. WooCommerce 10.7's CartItemSchema reads `name`,
+        // `description`, `sku` directly from `$cart_item['data']->get_title()`
+        // etc. — there are no Store API-specific translation hooks for those
+        // fields, so the only way to get translated values into Block cart is to
+        // present a translated product object.
+        //
+        // Verified in WC source:
+        //   plugins/woocommerce/includes/class-wc-cart-session.php:250
+        //   plugins/woocommerce/includes/class-wc-cart.php (apply_filters('woocommerce_add_cart_item', ...))
+        add_filter('woocommerce_get_cart_item_from_session', array($this, 'translateCartItemFromSession'), 10, 3);
+        add_filter('woocommerce_add_cart_item', array($this, 'translateCartItemOnAdd'), 10, 2);
+
+        // Render-time filters (apply on top of session-load translation as
+        // safety nets). Some fire under classic cart only; some fire in Store
+        // API too (verified WC 10.7 source):
+        //   - woocommerce_cart_item_product   — NOT applied in Block cart
+        //   - woocommerce_cart_item_product_id — NOT applied in Block cart
+        //   - woocommerce_cart_item_permalink  — IS applied in Store API (CartItemSchema.php:52)
+        //   - woocommerce_get_item_data        — IS applied for variation attrs (CartItemSchema.php:169)
+        // Keeping the legacy hooks doesn't cause double-translation because
+        // pll_get_post(translatedId) is idempotent for the same target language.
         add_filter('woocommerce_cart_item_product', array($this, 'translateCartItemProduct'), 10, 2);
         add_filter('woocommerce_cart_item_product_id', array($this, 'translateCartItemProductId'), 10, 1);
         add_filter('woocommerce_cart_item_permalink', array($this, 'translateCartItemPermalink'), 10, 2);
         add_filter('woocommerce_get_item_data', array($this, 'translateCartItemData'), 10, 2);
 
-        // Handle the update of cart widget when language is switched
+        // Language-change cache invalidation: forces cart fragments to refresh
+        // when the `pll_language` cookie changes. Works for both classic cart and
+        // Block cart (Block cart's Store API responses are also subject to the
+        // cart fragment session storage).
         add_action('wp_enqueue_scripts', array($this, 'replaceCartFragmentsScript'), 100);
 
     }
 
     /**
-     * Add to cart.
+     * Translate a cart item to the current language. Idempotent.
      *
-     * The function will make sure that products won't be duplicated for each
-     * language
+     * Mutates the cart item array in place:
+     *   - `data` (WC_Product object) → translated product
+     *   - `variation` (variation attribute slugs) → translated slugs when the
+     *     translated product is a variation
+     *
+     * Why we DON'T mutate product_id / variation_id / data_hash:
+     *   The cart line's KEY (in WC_Cart::cart_contents) is generated by
+     *   WC_Cart::generate_cart_id() from the ORIGINAL adding-language IDs and is
+     *   used by find_product_in_cart() for dedup lookup. Mutating the IDs would
+     *   leave the cart line's stored KEY out of sync with its current internal
+     *   IDs, breaking dedup on subsequent adds in different languages. We instead
+     *   only translate `data` (display product) and `variation` (display slugs);
+     *   downstream consumers (CartItemSchema, classic templates) read from those
+     *   fields. The `product_id` / `variation_id` stay as the canonical (original)
+     *   IDs, which is also the correct value to record in resulting orders.
+     *
+     * Other fields (key, quantity, line_subtotal, variation, etc.) are unchanged.
+     *
+     * If no translation exists for the current language, returns the input
+     * unchanged. Safe to call multiple times — subsequent translations of an
+     * already-translated product return the same product (Polylang's
+     * translation lookup is symmetric).
+     *
+     * @param array $cart_item Cart item array.
+     * @return array Mutated cart item array.
+     */
+    protected function translateCartItemArray(array $cart_item)
+    {
+        if (!isset($cart_item['data']) || !$cart_item['data'] instanceof \WC_Product) {
+            return $cart_item;
+        }
+        if (!function_exists('pll_get_post') || !function_exists('pll_current_language')) {
+            return $cart_item;
+        }
+        $current_lang = pll_current_language();
+        if (!$current_lang) {
+            return $cart_item;
+        }
+
+        $product = $cart_item['data'];
+        $translated_product = null;
+
+        if ($product->get_type() === 'variation') {
+            $variation_id = isset($cart_item['variation_id']) ? (int) $cart_item['variation_id'] : (int) $product->get_id();
+            $variation_translation = $this->getVariationTranslation($variation_id, $current_lang);
+            if ($variation_translation && $variation_translation->get_id() !== $variation_id) {
+                $cart_item['data'] = $variation_translation;
+                $translated_product = $variation_translation;
+            }
+        } else {
+            // Simple / grouped / external products.
+            $product_id = (int) $product->get_id();
+            $translated_id = pll_get_post($product_id, $current_lang);
+            if ($translated_id && $translated_id !== $product_id) {
+                $translated = wc_get_product($translated_id);
+                if ($translated) {
+                    $cart_item['data'] = $translated;
+                    $translated_product = $translated;
+                }
+            }
+        }
+
+        // Sync $cart_item['variation'] to the translated variation's own attribute
+        // slugs. Without this, Store API's CartItemSchema::format_variation_data
+        // resolves attribute terms via `get_term_by('slug', $source_lang_slug, ...)`
+        // which under Polylang's per-language term filtering may not return the
+        // correct term — leaking source-language slugs in the variation field of
+        // the Block cart response.
+        //
+        // The translated WC_Product_Variation has its own attribute slug map
+        // (in the target language), exposed via get_variation_attributes(). Use it.
+        if ($translated_product
+            && $translated_product instanceof \WC_Product_Variation
+            && method_exists($translated_product, 'get_variation_attributes')
+        ) {
+            $translated_attrs = $translated_product->get_variation_attributes();
+            if (is_array($translated_attrs) && !empty($translated_attrs)) {
+                $cart_item['variation'] = $translated_attrs;
+            }
+        }
+
+        return $cart_item;
+    }
+
+    /**
+     * Hook callback: translate cart items as they're restored from session
+     * for the current request.
+     *
+     * Hooked to `woocommerce_get_cart_item_from_session` which fires once per
+     * cart item per request, BEFORE Store API serialization runs.
+     *
+     * @param array  $session_data The cart item array reconstructed from session.
+     * @param array  $values       Original session values.
+     * @param string $key          Cart item key.
+     * @return array
+     */
+    public function translateCartItemFromSession($session_data, $values, $key)
+    {
+        return $this->translateCartItemArray($session_data);
+    }
+
+    /**
+     * Hook callback: translate cart items as they're added to the cart in the
+     * current request (so the in-memory cart is correct without waiting for the
+     * next session-load).
+     *
+     * Hooked to `woocommerce_add_cart_item` which fires inside
+     * `WC_Cart::add_to_cart()` after the item has been assembled.
+     *
+     * @param array  $cart_item Cart item array.
+     * @param string $cart_item_key Cart item key.
+     * @return array
+     */
+    public function translateCartItemOnAdd($cart_item, $cart_item_key)
+    {
+        return $this->translateCartItemArray($cart_item);
+    }
+
+    /**
+     * Add to cart (CLASSIC add path).
+     *
+     * If a translation of the product being added is already in the cart, this
+     * filter swaps the product ID to the existing cart-line product ID so WC's
+     * `find_product_in_cart()` matches and quantity is incremented instead of
+     * a new cart line being created.
+     *
+     * Hooked to `woocommerce_add_to_cart_product_id` which is applied by
+     * `WC_Cart::add_to_cart()` (classic) but NOT by the Store API. See
+     * `dedupeStoreApiAdd()` for the Block cart equivalent.
      *
      * @param int $ID the current product ID
      *
@@ -59,18 +227,124 @@ class Cart
 
         // get the product translations
         $IDS = Utilities::getProductTranslationsArrayByID($ID);
+        if (!is_array($IDS)) {
+            return $result;
+        }
 
         // check if any of product's translation is already in cart
-        foreach (WC()->cart->get_cart() as $values) {
-            $product = $values['data'];
-
-            if (in_array($product->get_id(), $IDS)) {
-                $result = $product->get_id();
-                break;
+        if (WC()->cart) {
+            foreach (WC()->cart->get_cart() as $values) {
+                if (!isset($values['data']) || !$values['data'] instanceof \WC_Product) {
+                    continue;
+                }
+                $product = $values['data'];
+                if (in_array($product->get_id(), $IDS, true)) {
+                    $result = $product->get_id();
+                    break;
+                }
             }
         }
 
         return $result;
+    }
+
+    /**
+     * Add to cart dedup for STORE API (Block cart) add path.
+     *
+     * The Store API's `CartController::add_to_cart()` computes the cart_id from
+     * the request's product/variation ID and then calls `find_product_in_cart`.
+     * It does NOT apply `woocommerce_add_to_cart_product_id`. We instead hook
+     * `woocommerce_store_api_add_to_cart_data` (added in WC 8.8) which fires
+     * BEFORE the cart_id is computed, allowing us to swap the request's `id` to
+     * the canonical product ID of an existing cart line for the same logical
+     * product (any language).
+     *
+     * Verified in WC 10.7 source:
+     *   src/StoreApi/Routes/V1/CartAddItem.php:116-125
+     *   src/StoreApi/Utilities/CartController.php:99-147
+     *
+     * Known limitation: WC also exposes `POST /wc/store/v1/cart/items` via
+     * `src/StoreApi/Routes/V1/CartItems.php`. That route calls
+     * `CartController::add_to_cart()` without applying
+     * `woocommerce_store_api_add_to_cart_data`, so this dedupe hook does not run
+     * there.
+     *
+     * @param array $add_to_cart_data Filter input: ['id' => int, 'quantity' => int,
+     *                                'variation' => array, 'cart_item_data' => array].
+     *                                The 'id' is the product ID for simple/grouped/external
+     *                                or the variation ID for variations.
+     * @param \WP_REST_Request|null $request The original Store API request (unused but kept
+     *                                       for filter signature compatibility).
+     * @return array Modified $add_to_cart_data with potentially swapped 'id'.
+     */
+    public function dedupeStoreApiAdd($add_to_cart_data, $request = null)
+    {
+        if (empty($add_to_cart_data['id']) || !is_numeric($add_to_cart_data['id'])) {
+            return $add_to_cart_data;
+        }
+        if (!function_exists('pll_get_post')) {
+            return $add_to_cart_data;
+        }
+
+        $incoming_id = (int) $add_to_cart_data['id'];
+        $incoming_product = wc_get_product($incoming_id);
+        if (!$incoming_product) {
+            return $add_to_cart_data;
+        }
+
+        // For variations, dedup at the variation-sibling level via the
+        // `_point_to_variation` meta linkage. Each variation has a meta value
+        // pointing to the master variation ID (the original-language one); a
+        // master self-references. Translations of the same logical variation
+        // share the same master ID.
+        if ($incoming_product->get_type() === 'variation') {
+            $incoming_master = get_post_meta($incoming_id, \Hyyan\WPI\Product\Variation::DUPLICATE_KEY, true);
+            if (!$incoming_master) {
+                // No linkage recorded — can't dedup safely.
+                return $add_to_cart_data;
+            }
+            $incoming_master = (int) $incoming_master;
+
+            if (WC()->cart) {
+                foreach (WC()->cart->get_cart() as $values) {
+                    if (!isset($values['data']) || !$values['data'] instanceof \WC_Product) {
+                        continue;
+                    }
+                    $cart_product = $values['data'];
+                    if ($cart_product->get_type() !== 'variation') {
+                        continue;
+                    }
+                    $cart_variation_id = (int) $cart_product->get_id();
+                    $cart_master = (int) get_post_meta($cart_variation_id, \Hyyan\WPI\Product\Variation::DUPLICATE_KEY, true);
+                    if ($cart_master && $cart_master === $incoming_master) {
+                        // Same logical variation, possibly different language.
+                        $add_to_cart_data['id'] = $cart_variation_id;
+                        break;
+                    }
+                }
+            }
+            return $add_to_cart_data;
+        }
+
+        // Simple / grouped / external products.
+        $translations = Utilities::getProductTranslationsArrayByID($incoming_id);
+        if (!is_array($translations) || empty($translations)) {
+            return $add_to_cart_data;
+        }
+        if (WC()->cart) {
+            foreach (WC()->cart->get_cart() as $values) {
+                if (!isset($values['data']) || !$values['data'] instanceof \WC_Product) {
+                    continue;
+                }
+                $cart_product_id = (int) $values['data']->get_id();
+                if (in_array($cart_product_id, $translations, true)) {
+                    $add_to_cart_data['id'] = $cart_product_id;
+                    break;
+                }
+            }
+        }
+
+        return $add_to_cart_data;
     }
 
     /**
@@ -83,8 +357,12 @@ class Cart
      */
     public function translateCartItemProduct($cart_item_data, $cart_item)
     {
-        $cart_product_id = isset($cart_item['product_id']) ? $cart_item['product_id'] : 0;
-        $cart_variation_id = isset($cart_item['variation_id']) ? $cart_item['variation_id'] : 0;
+        if (!($cart_item_data instanceof \WC_Product)) {
+            return $cart_item_data;
+        }
+
+        $cart_product_id = isset($cart_item['product_id']) ? (int) $cart_item['product_id'] : 0;
+        $cart_variation_id = isset($cart_item['variation_id']) ? (int) $cart_item['variation_id'] : 0;
 
         // By default, returns the same input
         $cart_item_data_translation = $cart_item_data;
@@ -92,7 +370,7 @@ class Cart
         switch ($cart_item_data->get_type()) {
             case 'variation':
                 $variation_translation = $this->getVariationTranslation($cart_variation_id);
-                if ($variation_translation && $variation_translation->get_id() != $cart_variation_id) {
+                if ($variation_translation && $variation_translation->get_id() !== $cart_variation_id) {
                     $cart_item_data_translation = $variation_translation;
                 }
                 break;
@@ -100,7 +378,7 @@ class Cart
             case 'simple':
             default:
                 $product_translation = Utilities::getProductTranslationByID($cart_product_id);
-                if ($product_translation && $product_translation->get_id() != $cart_product_id) {
+                if ($product_translation && $product_translation->get_id() !== $cart_product_id) {
                     $cart_item_data_translation = $product_translation;
                 }
                 break;
@@ -108,7 +386,7 @@ class Cart
 
 
         // If we are changing the product to the right language
-        if ($cart_item_data_translation->get_id() != $cart_item_data->get_id()) {
+        if ($cart_item_data_translation->get_id() !== $cart_item_data->get_id()) {
             $cart_item_data_translation = apply_filters(HooksInterface::CART_SWITCHED_ITEM, $cart_item_data_translation, $cart_item_data, $cart_item);
         }
 
@@ -138,7 +416,7 @@ class Cart
      */
     public function translateCartItemPermalink($item_permalink, $cart_item)
     {
-        $cart_variation_id = isset($cart_item['variation_id']) ? $cart_item['variation_id'] : 0;
+        $cart_variation_id = isset($cart_item['variation_id']) ? (int) $cart_item['variation_id'] : 0;
 
         if ($cart_variation_id !== 0) {
             // Variation
@@ -152,6 +430,13 @@ class Cart
     /**
      * Translate product variation attributes.
      *
+     * Known limitation: `get_term_by('slug', ...)` returns the first matching
+     * term. Under Polylang's per-language taxonomy filtering this can be
+     * context-dependent. The safer Block-cart path is the variation-slug sync in
+     * `translateCartItemArray()` which reads the translated variation's own
+     * attribute slugs via `WC_Product_Variation::get_variation_attributes()`.
+     * This classic-cart path is retained for shortcode-rendering back-compat.
+     *
      * @param array     $item_data      Variation attributes
      * @param array     $cart_item      Cart item
      *
@@ -162,26 +447,35 @@ class Cart
         // We don't translate the variation attributes if the product in the cart
         // is not a product variation, and in case of a product variation, it
         // doesn't have a translation in the current language.
-        $cart_variation_id = isset($cart_item['variation_id']) ? $cart_item['variation_id'] : 0;
+        $cart_variation_id = isset($cart_item['variation_id']) ? (int) $cart_item['variation_id'] : 0;
 
-        if ($cart_variation_id == 0) {
+        if ($cart_variation_id === 0) {
             // Not a variation product
             return $item_data;
-        } elseif ($cart_variation_id != 0 && false == $this->getVariationTranslation($cart_variation_id)) {
+        } elseif ($this->getVariationTranslation($cart_variation_id) === false) {
             // Variation product without translation in current language
+            return $item_data;
+        }
+
+        if (!isset($cart_item['variation']) || !is_array($cart_item['variation'])) {
             return $item_data;
         }
 
         $item_data_translation = array();
 
         foreach ($item_data as $data) {
+            if (!isset($data['key']) || !isset($data['value'])) {
+                $item_data_translation[] = $data;
+                continue;
+            }
+
             $term_id = null;
 
             foreach ($cart_item['variation'] as $tax => $term_slug) {
                 $tax = str_replace('attribute_', '', $tax);
                 $term = get_term_by('slug', $term_slug, $tax);
 
-                if ($term && isset($data['value']) && $term->name === $data['value']) {
+                if ($term && $term->name === $data['value']) {
                     $term_id = $term->term_id;
                     break;
                 }
@@ -197,10 +491,10 @@ class Cart
                 } else {
                     // Get term translation from id
                     $term_translation = get_term($term_id_translation);
-
-                    $error = get_class($term_translation) == 'WP_Error';
-
-                    $item_data_translation[] = array('key' => $data['key'], 'value' => !$error ? $term_translation->name : $data['value']); // On error return same
+                    $item_data_translation[] = array(
+                        'key' => $data['key'],
+                        'value' => !is_wp_error($term_translation) ? $term_translation->name : $data['value'],
+                    ); // On error return same
                 }
             } else {
                 // Product attribute is post metadata and not translatable - return same
@@ -212,17 +506,27 @@ class Cart
     }
 
     /**
-     * Replace woo fragments script.
+     * Add a Polylang language-change detection layer on top of WooCommerce's native cart
+     * fragments script.
      *
-     * To update cart widget when language is switched
+     * v1.x of this plugin replaced wc-cart-fragments wholesale with a forked copy that
+     * carried a stale clone of WooCommerce's code plus one Polylang-specific addition.
+     * That approach has been removed in favour of leaving wc-cart-fragments alone and
+     * shipping only the small adapter script that triggers a fragment refresh when
+     * the `pll_language` cookie changes.
+     *
+     * Note: jquery-cookie is not used. The adapter script uses native document.cookie.
      */
     public function replaceCartFragmentsScript()
     {
-        /* remove the orginal wc-cart-fragments.js and register ours */
-        wp_deregister_script('wc-cart-fragments');
-        $suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
+        // Adapter script is small enough that maintaining a minified twin is not worth
+        // the pre-build complexity for an "occasional updates" maintenance model.
         wp_enqueue_script(
-            'wc-cart-fragments', plugins_url('public/js/Cart' . $suffix . '.js', Hyyan_WPI_DIR), array('jquery', 'jquery-cookie'), Plugin::getVersion(), true
+            'wpi-cart-language',
+            plugins_url('public/js/Cart.js', Hyyan_WPI_DIR),
+            array('jquery'),
+            Plugin::getVersion(),
+            true
         );
     }
 

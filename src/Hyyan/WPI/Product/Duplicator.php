@@ -60,6 +60,7 @@ class Duplicator
         global $polylang;
         //deprecated in Polylang 1.8 [currently 2.1.4], use PLL()->model->post->delete_translation() instead
         //$polylang->model->delete_translation('post', $ID);
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         $polylang->model->post->delete_translation($duplicate->get_id());
     }
 }

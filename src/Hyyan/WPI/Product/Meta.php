@@ -1,12 +1,14 @@
 <?php
 
 /**
- * This file is part of the hyyan/woo-poly-integration plugin.
- * (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * This file is part of the woo-poly-integration plugin.
+ * Original (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * Modernized fork (c) IntegrIT Solutions.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
- * TODO: consider a version of PLL_Sync_Post_Metas for products,
+ */
+/* TODO: consider a version of PLL_Sync_Post_Metas for products,
  * 		suppress the postmeta actions and use the woocommerce api
  */
 namespace Hyyan\WPI\Product;
@@ -75,20 +77,27 @@ class Meta
     }
 
     /**
-     * On insert of a new product attribute, attempt to set it to translateable by default
+     * On insert of a new product attribute, attempt to set it to translatable by default.
      *
-     * @param integer  $insert_id  id of attribute
-     * @param Array    $attribute  array of attribute data, see get_posted_attribute()
+     * Uses PolylangOptions which writes via the 3.7+ object API (and falls back
+     * to direct option mutation on older versions). Replaces the v1.x pattern
+     * of `update_option('polylang', $array)` which is unsafe on Polylang 3.7+.
+     *
+     * Note: the v1.x guard `if (!in_array($attribute, $sync))` was bugged — it
+     * tested the entire $attribute array against a list of taxonomy slug strings,
+     * so the guard was effectively always true. PolylangOptions::addToList does
+     * the correct slug-based duplicate check internally.
+     *
+     * @param integer $insert_id id of attribute
+     * @param array   $attribute array of attribute data, see get_posted_attribute()
      */
     public function newProductAttribute($insert_id, $attribute)
     {
-        $options = get_option('polylang');
-        $sync = $options['taxonomies'];
-        $attrname = 'pa_' . $attribute['attribute_name'];
-        if (!in_array($attribute, $sync)) {
-            $options['taxonomies'][] = $attrname;
-            update_option('polylang', $options);
+        if (empty($attribute['attribute_name'])) {
+            return;
         }
+        $taxonomy_slug = 'pa_' . $attribute['attribute_name'];
+        \Hyyan\WPI\Compat\PolylangOptions::registerTaxonomy($taxonomy_slug);
     }
 
     /**
@@ -103,6 +112,7 @@ class Meta
         $ProductID = $object->get_id();
         if ($ProductID) {
             do_action('pll_save_post', $ProductID, $object,
+                // @internal Polylang internal API; reverify on Polylang minor upgrades.
                 PLL()->model->post->get_translations($ProductID));
 
             $this->syncTaxonomiesAndProductAttributes($ProductID, $object, true);
@@ -143,6 +153,7 @@ class Meta
     public function syncProductMeta($from, $to, $lang, $sync = true)
     {
         // sync product meta with polylang
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         PLL()->sync->post_metas->copy( $from, $to, $lang, $sync );
     }
     
@@ -177,14 +188,15 @@ class Meta
          */
 
         if (isset($_GET['post'])) {
-            $ID = absint($_GET['post']);
+            $ID = absint(wp_unslash($_GET['post']));
             //#545 props mrleemon, only disable if post has a master version in site default language
             $disable = $ID && ( pll_get_post_language($ID) != pll_default_language() ) 
                 && pll_get_post( $ID, pll_default_language() );                
         } elseif (isset($_GET['new_lang']) || $currentScreen->base == 'edit') {
-            $disable = isset($_GET['new_lang']) && (esc_attr($_GET['new_lang']) != pll_default_language()) ?
+            $new_lang = isset($_GET['new_lang']) ? sanitize_key(wp_unslash($_GET['new_lang'])) : '';
+            $disable = $new_lang !== '' && ($new_lang != pll_default_language()) ?
                 true : false;
-            $ID = isset($_GET['from_post']) ? absint($_GET['from_post']) : false;
+            $ID = isset($_GET['from_post']) ? absint(wp_unslash($_GET['from_post'])) : false;
 
             // Add the '_translation_porduct_type' meta, for the case where
             // the product was created before plugin acivation.
@@ -236,16 +248,15 @@ class Meta
         $taxonomies = get_object_taxonomies(get_post_type($post_id));
 
         //is this a new translation being created?
-        $copy = isset($_GET['new_lang']) && isset($_GET['from_post']);
+        $new_lang = isset($_GET['new_lang']) ? sanitize_key(wp_unslash($_GET['new_lang'])) : '';
+        $source_id = isset($_GET['from_post']) ? absint(wp_unslash($_GET['from_post'])) : 0;
+        $copy = ($new_lang !== '' && $source_id > 0);
 
         if ($copy) {
             // New translation - copy attributes from product source
-            $source_id = isset($_GET['from_post']) ? absint($_GET['from_post']) : false;
-
             if ($source_id) {
                 //JM2021: ensure new language is set on new translation early as lack of language taxonomy 
                 //causes some subsequent queries to fail
-                $new_lang = $_GET['new_lang'];
                 if (! pll_get_post_language( $post_id )){
                     pll_set_post_language ($post_id, $new_lang);
                 }
@@ -407,12 +418,9 @@ class Meta
      */
     public function copyTerms($old, $new, $lang, $taxonomies)
     {
-        //get the polylang options for later use
-        /* unused, replaced by later pll_is_translated_taxonomy()
-        global $polylang;
-        $polylang_options = get_option('polylang');
-        $polylang_taxs = $polylang_options['taxonomies'];
-         */
+        // Note: this method previously read polylang options directly (taxonomies list).
+        // That was already replaced by pll_is_translated_taxonomy() in v1.x; the dead
+        // code has been removed in the modernization.
 
         //loop through taxonomies and take appropriate action
         foreach ($taxonomies as $tax) {
@@ -530,9 +538,12 @@ class Meta
         }
         //unfortunately Polylang hooks the wp function and forces new term save into current language
         //so then we reset into current language and re-save the translations
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         $translations = $polylang->model->term->get_translations($term->term_id);
         $translations[$lang] = $newterm_id;
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         $polylang->model->term->set_language($newterm_id, $lang);
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         $polylang->model->term->save_translations($term->term_id, $translations);
 
         //when auto-creating missing parent category, the id is returned
@@ -560,11 +571,13 @@ class Meta
         if (in_array('product_shipping_class', $this->getProductMetaToCopy())) {
             // If adding new product translation copy shipping class, otherwise
             // sync all product translations with shipping class of this.
-            $copy = isset($_GET['new_lang']) && isset($_GET['from_post']);
+            $new_lang = isset($_GET['new_lang']) ? sanitize_key(wp_unslash($_GET['new_lang'])) : '';
+            $from_post = isset($_GET['from_post']) ? absint(wp_unslash($_GET['from_post'])) : 0;
+            $copy = ($new_lang !== '' && $from_post > 0);
 
             if ($copy) {
                 // New translation - copy shipping class from product source
-                $ID = isset($_GET['from_post']) ? absint($_GET['from_post']) : false;
+                $ID = $from_post ? $from_post : false;
                 $product = wc_get_product($ID);
             } else {
                 // Product edit - update shipping class of all product translations

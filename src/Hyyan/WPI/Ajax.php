@@ -41,6 +41,7 @@ class Ajax
     public function filter_woocommerce_ajax_get_endpoint($url, $request)
     {
         global $polylang;
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         $lang = ( $polylang->curlang ) ? $polylang->curlang : $polylang->pref_lang;
         return parse_url($polylang->filters_links->links->get_home_url($lang), PHP_URL_PATH) . '?' . parse_url($url, PHP_URL_QUERY);
     }

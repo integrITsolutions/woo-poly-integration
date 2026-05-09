@@ -1,8 +1,9 @@
 <?php
 
 /**
- * This file is part of the hyyan/woo-poly-integration plugin.
- * (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * This file is part of the woo-poly-integration plugin.
+ * Original (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * Modernized fork (c) IntegrIT Solutions.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,6 +13,7 @@ namespace Hyyan\WPI\Taxonomies;
 
 use Hyyan\WPI\Admin\Settings;
 use Hyyan\WPI\Admin\Features;
+use Hyyan\WPI\Compat\PolylangOptions;
 
 /**
  * Taxonomies.
@@ -114,61 +116,45 @@ class Taxonomies
      *
      * @return array
      */
+    /**
+     * When WooPoly settings are saved, sync the related Polylang taxonomy
+     * registrations (product_cat, product_tag, attribute taxonomies).
+     *
+     * Refactored from v1.x's direct option mutation. Goes through
+     * {@see PolylangOptions} which uses the 3.7+ options-object API where
+     * available, falling back to direct option mutation on older versions.
+     *
+     * @param array  $old_value previous WooPoly settings
+     * @param array  $new_value new WooPoly settings
+     * @param string $option    option name
+     */
     public static function updatePolyLangFromWooPolyFeatures($old_value, $new_value, $option)
     {
-        $polylang_options = get_option('polylang');
-        $polylang_taxs = $polylang_options['taxonomies'];
-        $update=false;
-
-        //check Polylang is in sync for Product category and tag translation
-        if ((isset($new_value['categories'])) && ($new_value['categories']=='on')) {
-            if (! in_array('product_cat', $polylang_taxs)) {
-                $polylang_options['taxonomies'][] = 'product_cat';
-                $update=true;
-            }
+        // Categories: explicitly enable or disable.
+        if (isset($new_value['categories']) && $new_value['categories'] === 'on') {
+            PolylangOptions::registerTaxonomy('product_cat');
         } else {
-            $key = array_search('product_cat', $polylang_taxs);
-            if ($key!==false) {  //key may be zero which is different from false
-                unset($polylang_options['taxonomies'][$key]);
-                $update=true;
-            }
-        }
-        if ((isset($new_value['tags'])) && ($new_value['tags']=='on')) {
-            if (! in_array('product_tag', $polylang_taxs)) {
-                $polylang_options['taxonomies'][] = 'product_tag';
-                $update=true;
-            }
-        } else {
-            $key = array_search('product_tag', $polylang_taxs);
-            if ($key!==false) {
-                unset($polylang_options['taxonomies'][$key]);
-                $update=true;
-            }
+            PolylangOptions::removeFromList('taxonomies', 'product_cat');
         }
 
-        //for attributes don't force on for all attributes but do force off when disabled
-        if (isset($old_value['attributes']) && isset($new_value['attributes'])) {
-            $old_attr_sync = $old_value['attributes'];
-            $new_attr_sync = $new_value['attributes'];
-            if ($old_attr_sync != $new_attr_sync) {
-                //if we are just turning the attributes on, old behaviour is to force add to translation
-                //now we will not force translation on, only force off, ie:
-                //  remove from Polylang if disabling translation
-                if ($new_attr_sync!='on') {
-                    $remove = Attributes::getNames();
-                    foreach ($remove as $tax) {
-                        if (in_array($tax, $polylang_taxs)) {
-                            $polylang_options['taxonomies'] = array_flip($polylang_options['taxonomies']);
-                            unset($polylang_options['taxonomies'][$tax]);
-                            $polylang_options['taxonomies'] = array_flip($polylang_options['taxonomies']);
-                            $update = true;
-                        } //if Product Attribute was previously translated
-                    } //for each Product Attribute
-                } //if wooPoly Translate Product Attributes is turned On
-            } //if attributes setting has changed
-        } //if attributes are set
-        if ($update) {
-            update_option('polylang', $polylang_options);
+        // Tags: explicitly enable or disable.
+        if (isset($new_value['tags']) && $new_value['tags'] === 'on') {
+            PolylangOptions::registerTaxonomy('product_tag');
+        } else {
+            PolylangOptions::removeFromList('taxonomies', 'product_tag');
+        }
+
+        // Attributes: don't force ON for all attributes (each attribute toggles
+        // individually via newProductAttribute), but force OFF when the global
+        // setting is disabled.
+        if (isset($old_value['attributes']) && isset($new_value['attributes'])
+            && $old_value['attributes'] !== $new_value['attributes']
+            && $new_value['attributes'] !== 'on'
+        ) {
+            $remove = Attributes::getNames();
+            foreach ($remove as $tax) {
+                PolylangOptions::removeFromList('taxonomies', $tax);
+            }
         }
     }
     

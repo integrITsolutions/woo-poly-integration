@@ -1,7 +1,8 @@
 <?php
 /**
- * This file is part of the hyyan/woo-poly-integration plugin.
- * (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * This file is part of the woo-poly-integration plugin.
+ * Original (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * Modernized fork (c) IntegrIT Solutions.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -154,8 +155,13 @@ class Variation
         //on translations when processing new order
         //it also did not return all versions of post for deletion
         global $wpdb;
-        $postids=$wpdb->get_col("select post_id from " . $wpdb->postmeta . " where meta_key='" .
-            self::DUPLICATE_KEY .  "' and meta_value=" . $variatonID);
+        $postids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %d",
+                self::DUPLICATE_KEY,
+                absint($variatonID)
+            )
+        );
 
         if (true === $returnIDS) {
             return $postids;
@@ -191,6 +197,8 @@ class Variation
      */
     protected function insert(\WC_Product_Variation $variation, array $metas)
     {
+        $new_lang = isset($_GET['new_lang']) ? sanitize_key(wp_unslash($_GET['new_lang'])) : '';
+
         // Add the duplicate meta to the default language product variation,
         // just in case the product was created before plugin acivation.
         $this->addDuplicateMeta($variation->get_id());
@@ -203,8 +211,8 @@ class Variation
             //JM2021: extra protection to ensure language set as early as possible
             //as had been failing on parent language [though now fixed]
             $targetLang = pll_get_post_language( $newParentId );
-            if ( (! $targetLang) && isset($_GET['new_lang'])) {
-                $targetLang=$_GET['new_lang'];
+            if ((!$targetLang) && $new_lang !== '') {
+                $targetLang = $new_lang;
             } 
             if ($targetLang){
                 pll_set_post_language( $ID, $targetLang );
@@ -297,6 +305,8 @@ class Variation
      */
     protected function copyVariationMetas($from, $to)
     {
+        $new_lang = isset($_GET['new_lang']) ? sanitize_key(wp_unslash($_GET['new_lang'])) : '';
+
         /* copy or synchronize post metas and allow plugins to do the same */
         $metas_from     = get_post_custom($from);
         $metas_to       = get_post_custom($to);
@@ -331,7 +341,7 @@ class Variation
                                 if ($term) {
                                     $term_id = $term->term_id;
                                     //ok we got a term to translate, now get translation if available
-                                    $lang = isset($_GET['new_lang']) ? esc_attr($_GET['new_lang']) : pll_get_post_language($this->to->get_id());
+                                    $lang = $new_lang !== '' ? $new_lang : pll_get_post_language($this->to->get_id());
                                     $translated_term = pll_get_term($term_id, $lang);
                                     if ($translated_term) {
                                         $translated[] = get_term_by('id', $translated_term, $tax)->slug;

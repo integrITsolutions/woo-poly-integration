@@ -1,0 +1,18 @@
+parameters:
+    level: 3
+    paths:
+        - __init__.php
+        - src
+    bootstrapFiles:
+        - vendor/szepeviktor/phpstan-wordpress/bootstrap.php
+    excludePaths:
+        - src/Hyyan/WPI/Views/*
+    ignoreErrors:
+        # Polylang public API — function_exists guards used at runtime; PHPStan can't see them.
+        - '#Function pll_[a-z_]+ not found#'
+        - '#Constant POLYLANG_VERSION not found#'
+        # WooCommerce internal classes referenced via fully-qualified strings for HPOS detection.
+        - '#Class Automattic\\WooCommerce\\.+ not found#'
+        # Class properties on $polylang global (private API, intentional usage).
+        - '#Access to .+property of class Polylang#'
+    treatPhpDocTypesAsCertain: false

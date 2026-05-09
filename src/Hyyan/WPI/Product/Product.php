@@ -1,8 +1,9 @@
 <?php
 
 /**
- * This file is part of the hyyan/woo-poly-integration plugin.
- * (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * This file is part of the woo-poly-integration plugin.
+ * Original (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * Modernized fork (c) IntegrIT Solutions.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,6 +13,7 @@ namespace Hyyan\WPI\Product;
 
 use Hyyan\WPI\Admin\Settings;
 use Hyyan\WPI\Admin\Features;
+use Hyyan\WPI\Compat\PolylangOptions;
 use Hyyan\WPI\Utilities;
 
 /**
@@ -29,13 +31,21 @@ class Product
     public function __construct()
     {
 
-        // manage product translation
+        // Declare 'product' and 'product_variation' to Polylang at runtime via filter.
         add_filter(
                 'pll_get_post_types', array($this, 'manageProductTranslation')
         );
 
-        // sync post parent (good for grouped products)
-        add_filter('admin_init', array($this, 'syncPostParent'));
+        // Idempotently persist the post type registration in Polylang's stored options
+        // so the Polylang Settings UI checkboxes reflect reality. Runs on init after
+        // Polylang has loaded.
+        add_action('init', array($this, 'ensureProductPostTypesRegisteredInPolylangOptions'), 12);
+
+        // Idempotently enable post_parent sync (used for grouped products).
+        // The original v1.x version was hooked to `admin_init` via add_filter (a bug —
+        // add_filter on an action runs the callback as a filter, but admin_init's return
+        // value is discarded). We use add_action correctly here.
+        add_action('admin_init', array($this, 'ensurePostParentSyncEnabled'));
 
         //Product title/description sync/translate, defaults to 0-Off for back-compatiblity
         $translate_option = Settings::getOption('new-translation-defaults', Features::getID(), 0);
@@ -80,12 +90,26 @@ class Product
      * by clicking on the star
      */
     public static function sync_ajax_woocommerce_feature_product() {
+      $product_id = isset($_GET['product_id']) ? absint(wp_unslash($_GET['product_id'])) : 0;
+      if (! $product_id) {
+        return;
+      }
+
+      if (! current_user_can('edit_products')) {
+        return;
+      }
+
+      $nonce = isset($_GET['_wpnonce']) ? sanitize_text_field(wp_unslash($_GET['_wpnonce'])) : '';
+      if (! wp_verify_nonce($nonce, 'woocommerce-feature-product')) {
+        return;
+      }
+
       $metas = Meta::getDisabledProductMetaToCopy();
       if ( in_array( '_visibility', $metas ) ) {
         return;
       }
 
-      $product = wc_get_product( absint( $_GET[ 'product_id' ] ) );
+      $product = wc_get_product($product_id);
       if ( $product ) {
         //woocommerce action runs last so we need to set translation feature to the opposite of current value
         $targetValue = ! $product->get_featured();
@@ -168,41 +192,44 @@ class Product
     
     
     /**
-     * Notifty polylang about product custom post.
+     * Declare 'product' (and 'product_variation') to Polylang as translatable
+     * post types at runtime.
      *
-     * @param array $types array of custom post names managed by polylang
-     *
+     * @param array $types post type names already managed by Polylang
      * @return array
      */
     public function manageProductTranslation(array $types)
     {
-        $options = get_option('polylang');
-        $postTypes = $options['post_types'];
-        if (!in_array('product', $postTypes)) {
-            $options['post_types'][] = 'product';
-            update_option('polylang', $options);
+        if (!in_array('product', $types, true)) {
+            $types[] = 'product';
         }
-		if ( ! in_array( 'product_variation', $postTypes ) ) {
-			$options[ 'post_types' ][] = 'product_variation';
-			update_option( 'polylang', $options );
-		}
-
-        $types [] = 'product';
-
+        // Note: v1.x didn't add 'product_variation' to the filter return. We don't
+        // either — Polylang treats variations specially via parent post sync.
         return $types;
     }
 
     /**
-     * Tell polylang to sync the post parent.
+     * Idempotently ensure 'product' and 'product_variation' are registered in
+     * Polylang's stored options.
+     *
+     * Replaces the v1.x pattern of mutating `get_option('polylang')` directly,
+     * which is unsafe on Polylang 3.7+ per the options-object refactor.
+     *
+     * @see \Hyyan\WPI\Compat\PolylangOptions
      */
-    public function syncPostParent()
+    public function ensureProductPostTypesRegisteredInPolylangOptions()
     {
-        $options = get_option('polylang');
-        $sync = $options['sync'];
-        if (!in_array('post_parent', $sync)) {
-            $options['sync'][] = 'post_parent';
-            update_option('polylang', $options);
-        }
+        PolylangOptions::registerPostType('product');
+        PolylangOptions::registerPostType('product_variation');
+    }
+
+    /**
+     * Tell Polylang to sync the post parent (used for grouped products to keep
+     * child references aligned across translations).
+     */
+    public function ensurePostParentSyncEnabled()
+    {
+        PolylangOptions::enableSync('post_parent');
     }
 
     /**
@@ -218,10 +245,11 @@ class Product
         $lang = '';
 
         if (isset($_GET['new_lang'])) {
-            $lang = esc_attr($_GET['new_lang']);
+            $lang = sanitize_key(wp_unslash($_GET['new_lang']));
         } elseif (!empty($post)) {
             $lang = pll_get_post_language($post->ID);
         } else {
+            // @internal Polylang internal API; reverify on Polylang minor upgrades.
             $lang = PLL()->pref_lang;
         }
 
@@ -236,7 +264,7 @@ class Product
     {
         // Polylang sets the 'from_post' parameter
         if (isset($_GET['from_post'])) {
-            $my_post = get_post($_GET['from_post']);
+            $my_post = get_post(absint(wp_unslash($_GET['from_post'])));
             if ($my_post) {
                 return $my_post->post_title;
             }
@@ -249,7 +277,7 @@ class Product
     {
         // Polylang sets the 'from_post' parameter
         if (isset($_GET['from_post'])) {
-            $my_post = get_post($_GET['from_post']);
+            $my_post = get_post(absint(wp_unslash($_GET['from_post'])));
             if ($my_post) {
                 return $my_post->post_content;
             }
@@ -262,7 +290,7 @@ class Product
     {
         // Polylang sets the 'from_post' parameter
         if (isset($_GET['from_post'])) {
-            $my_post = get_post($_GET['from_post']);
+            $my_post = get_post(absint(wp_unslash($_GET['from_post'])));
             if ($my_post) {
                 return $my_post->post_excerpt;
             }

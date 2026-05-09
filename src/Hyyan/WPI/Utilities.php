@@ -34,6 +34,7 @@ final class Utilities
     public static function getProductTranslationsArrayByID($ID, $excludeDefault = false)
     {
         global $polylang;
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         $IDS = PLL()->model->post->get_translations($ID);
         if (true === $excludeDefault) {
             unset($IDS[pll_default_language()]);
@@ -110,6 +111,7 @@ final class Utilities
     {
         global $polylang;
 
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         $langs = $polylang->model->get_languages_list();
 
         foreach ($langs as $lang) {
@@ -135,6 +137,7 @@ final class Utilities
     public static function getTermTranslationsArrayByID($ID, $excludeDefault = false)
     {
         global $polylang;
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         $IDS = PLL()->model->term->get_translations($ID);
         if (true === $excludeDefault) {
             unset($IDS[pll_default_language()]);
@@ -627,39 +630,45 @@ final class Utilities
 		}
 
 		global $polylang;
-		static $cache; // Polylang string translations cache object to avoid loading the same translations object several times
-		// Cache object not found. Create one...
-		if ( empty( $cache ) ) {
-			$cache = new \PLL_Cache();
-		}
-
-		//if we are switching languages, set the polylang curlang
-		//and load string translations for that language
-		if ( $languageLocale ) {
-			$pll_lang = $polylang->model->get_language( $languageLocale );
-			if ( $pll_lang ) {
-				$polylang->curlang = $pll_lang;
-				$GLOBALS[ 'text_direction' ] = $pll_lang->is_rtl ? 'rtl' : 'ltr';
-			} else {
-				//20190630: old code used in previous versions of this plugin
-				$polylang->curlang->locale = $languageLocale;
+			static $cache; // Polylang string translations cache object to avoid loading the same translations object several times
+			// Cache object not found. Create one...
+			if ( empty( $cache ) ) {
+				// @internal Polylang internal API; reverify on Polylang minor upgrades.
+				$cache = new \PLL_Cache();
 			}
-			// Cache miss
-			$mo = $cache->get( $languageLocale );
-			//if it is a valid language which does not yet have string translations loaded
-			if ( $pll_lang && ! $mo ) {
-				$mo = new \PLL_MO();
-				$mo->import_from_db( $pll_lang );
-				// Add to cache
+
+			//if we are switching languages, set the polylang curlang
+			//and load string translations for that language
+			if ( $languageLocale ) {
+				// @internal Polylang internal API; reverify on Polylang minor upgrades.
+				$pll_lang = $polylang->model->get_language( $languageLocale );
+				if ( $pll_lang ) {
+					// @internal Polylang internal API; reverify on Polylang minor upgrades.
+					$polylang->curlang = $pll_lang;
+					$GLOBALS[ 'text_direction' ] = $pll_lang->is_rtl ? 'rtl' : 'ltr';
+				} else {
+					//20190630: old code used in previous versions of this plugin
+					// @internal Polylang internal API; reverify on Polylang minor upgrades.
+					$polylang->curlang->locale = $languageLocale;
+				}
+				// Cache miss
+				$mo = $cache->get( $languageLocale );
+				//if it is a valid language which does not yet have string translations loaded
+				if ( $pll_lang && ! $mo ) {
+					// @internal Polylang internal API; reverify on Polylang minor upgrades.
+					$mo = new \PLL_MO();
+					$mo->import_from_db( $pll_lang );
+					// Add to cache
 				$cache->set( $languageLocale, $mo );
 			}
 			if ( $mo ) {
 				$GLOBALS[ 'l10n' ][ 'pll_string' ] = &$mo;
 			}
-		} else {
-			//if the $languageLocale is not set return to Show all languages
-			$polylang->curlang = false;
+			} else {
+				//if the $languageLocale is not set return to Show all languages
+				// @internal Polylang internal API; reverify on Polylang minor upgrades.
+				$polylang->curlang = false;
+			}
 		}
-	}
 
 }

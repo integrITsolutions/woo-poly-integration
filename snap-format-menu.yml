@@ -1,0 +1,189 @@
+- generic:
+  - generic:
+    - generic:
+      - button:
+        - img
+    - generic:
+      - generic:
+        - complementary:
+          - navigation "Sidebar":
+            - generic:
+              - button:
+                - generic
+                - generic: IntegrIT Solutions
+                - generic
+            - generic:
+              - generic:
+                - generic
+                - generic
+              - generic:
+                - generic
+            - generic:
+              - generic:
+                - region "My groups"
+              - generic:
+                - link:
+                  - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/profile
+                - link:
+                  - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/network-members?invite=true
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic
+                - button
+              - generic:
+                - generic
+                - button: Share
+                - button
+            - generic:
+              - generic:
+                - generic
+              - button:
+                - img
+            - generic:
+              - generic:
+                - generic
+                - button
+                - button
+              - generic:
+                - button
+                - button
+                - button
+                - button
+          - listbox:
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - status
+            - generic:
+              - button: New status
+  - generic:
+    - region "Notifications alt+T"
+  - dialog "Entity information":
+    - heading [level=2]: Entity information
+    - generic: More details about the entity
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - button:
+              - img
+            - button:
+              - img
+            - generic:
+              - navigation:
+                - generic
+                - button
+          - button: Copy link
+          - button:
+            - img
+      - generic:
+        - generic:
+          - generic:
+            - button
+            - generic:
+              - img
+          - generic:
+            - generic:
+              - generic:
+                - generic
+                - generic
+        - generic:
+          - button:
+            - generic:
+              - img
+            - text: Enrich
+          - button:
+            - generic:
+              - img
+            - text: Email
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic
+          - generic:
+            - banner:
+              - tablist:
+                - tab [selected]: Details
+                - tab
+                - tab
+                - tab
+            - tabpanel "Details":
+              - generic:
+                - generic
+  - status
+  - iframe [ref=e941]:
+    
+  - menu "Deal value" [ref=e942]:
+    - menuitem "Field name" [ref=e946]: Deal value
+    - menuitem "Format" [expanded] [active] [ref=e947] [cursor=pointer]:
+      - text: Format
+      - img [ref=e949]
+    - menuitem "Decimals" [ref=e951] [cursor=pointer]:
+      - text: Decimals
+      - img [ref=e953]
+    - separator [ref=e955]
+    - menuitem "Fill with AI" [ref=e956] [cursor=pointer]
+    - separator [ref=e957]
+    - menuitem "Hide" [ref=e958] [cursor=pointer]
+    - menuitem "Add workflow…" [ref=e959] [cursor=pointer]
+    - separator [ref=e960]
+    - menuitem "Delete field…" [ref=e961] [cursor=pointer]
+  - menu "Format" [ref=e962]:
+    - menuitem "None 1234.56" [ref=e963] [cursor=pointer]:
+      - generic [ref=e965]:
+        - text: None
+        - generic [ref=e966]: "1234.56"
+    - menuitem "Number 1,234.56" [ref=e967] [cursor=pointer]:
+      - generic [ref=e969]:
+        - text: Number
+        - generic [ref=e970]: 1,234.56
+    - menuitem "Percent 123,456%" [ref=e971] [cursor=pointer]:
+      - generic [ref=e973]:
+        - text: Percent
+        - generic [ref=e974]: 123,456%
+    - menuitem "Currency" [ref=e975] [cursor=pointer]:
+      - img [ref=e977]
+      - text: Currency
+      - img [ref=e980]

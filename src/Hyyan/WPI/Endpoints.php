@@ -225,6 +225,7 @@ class Endpoints
     public function fixMyAccountLinkInMenus(array $items = array())
     {
         global $polylang;
+        // @internal Polylang internal API; reverify on Polylang minor upgrades.
         $translations = PLL()->model->post->get_translations(
                 wc_get_page_id('myaccount')
         );

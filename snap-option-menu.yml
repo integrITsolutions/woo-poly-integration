@@ -1,0 +1,193 @@
+- generic:
+  - generic:
+    - generic:
+      - button:
+        - img
+    - generic:
+      - generic:
+        - complementary:
+          - navigation "Sidebar":
+            - generic:
+              - button:
+                - generic
+                - generic: IntegrIT Solutions
+                - generic
+            - generic:
+              - generic:
+                - generic
+                - generic
+              - generic:
+                - generic
+            - generic:
+              - generic:
+                - region "My groups"
+              - generic:
+                - link:
+                  - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/profile
+                - link:
+                  - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/network-members?invite=true
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic
+                - button
+              - generic:
+                - generic
+                - button: Share
+                - button
+            - generic:
+              - generic:
+                - generic
+              - button:
+                - img
+            - generic:
+              - generic:
+                - generic
+                - button
+                - button
+              - generic:
+                - button
+                - button
+                - button
+                - button
+          - listbox:
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - generic:
+              - region:
+                - button
+                - generic
+            - status
+            - generic:
+              - button: New status
+  - generic:
+    - region "Notifications alt+T"
+  - dialog "Entity information":
+    - heading [level=2]: Entity information
+    - generic: More details about the entity
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - button:
+              - img
+            - button:
+              - img
+            - generic:
+              - navigation:
+                - generic
+                - button
+          - button: Copy link
+          - button:
+            - img
+      - generic:
+        - generic:
+          - generic:
+            - button
+            - generic:
+              - img
+          - generic:
+            - generic:
+              - generic:
+                - generic
+                - generic
+        - generic:
+          - button:
+            - generic:
+              - img
+            - text: Enrich
+          - button:
+            - generic:
+              - img
+            - text: Email
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic
+          - generic:
+            - banner:
+              - tablist:
+                - tab [selected]: Details
+                - tab
+                - tab
+                - tab
+            - tabpanel "Details":
+              - generic:
+                - generic
+  - iframe [ref=e929]:
+    
+  - status
+  - generic:
+    - generic:
+      - dialog:
+        - listbox "Option selection":
+          - generic:
+            - list:
+              - generic:
+                - generic: Option selection
+                - combobox [expanded]
+          - generic:
+            - group "Select an option or create one":
+              - heading [level=3]: Select an option or create one
+              - button:
+                - option [selected]
+              - button:
+                - option
+              - button:
+                - option
+              - status
+  - menu "Rename, change color, remove…" [ref=e979]:
+    - group [ref=e980]:
+      - menuitem [active] [ref=e984]: Small
+      - generic [ref=e985]: Colors
+      - menuitemradio "Purple" [checked] [ref=e986] [cursor=pointer]:
+        - text: Purple
+        - img [ref=e990]
+      - menuitemradio "Green" [ref=e992] [cursor=pointer]: Green
+      - menuitemradio "Red" [ref=e995] [cursor=pointer]: Red
+      - menuitemradio "Yellow" [ref=e998] [cursor=pointer]: Yellow
+      - menuitemradio "Gray" [ref=e1001] [cursor=pointer]: Gray
+      - menuitemradio "Pink" [ref=e1004] [cursor=pointer]: Pink
+      - menuitemradio "Blue" [ref=e1007] [cursor=pointer]: Blue
+      - menuitemradio "Orange" [ref=e1010] [cursor=pointer]: Orange
+    - separator [ref=e1013]
+    - menuitem "Delete option" [ref=e1014] [cursor=pointer]:
+      - generic [ref=e1015]: Delete option

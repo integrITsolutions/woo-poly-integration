@@ -1,0 +1,724 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - button "Need help?" [ref=e10] [cursor=pointer]:
+      - img [ref=e11]
+    - generic [ref=e13]:
+      - complementary [ref=e15]:
+        - navigation "Sidebar" [ref=e16]:
+          - button "IntegrIT Solutions IntegrIT Solutions" [ref=e18] [cursor=pointer]:
+            - img "IntegrIT Solutions" [ref=e20]:
+              - generic [ref=e21]: I
+            - generic [ref=e22]: IntegrIT Solutions
+            - img [ref=e24]
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e28]:
+                - img [ref=e30]
+                - text: Premium trial
+                - generic [ref=e32]: (2 weeks left)
+              - link "Subscribe" [ref=e34] [cursor=pointer]:
+                - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/plans
+            - generic [ref=e36]:
+              - link "Search" [ref=e37] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/search
+                - img [ref=e39]
+                - text: Search
+              - link "Notifications" [ref=e41] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/inbox
+                - img [ref=e43]
+                - text: Notifications
+              - link "Messages" [ref=e45] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/messaging
+                - img [ref=e47]
+                - text: Messages
+              - link "Dashboards" [ref=e49] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/group-reports/dashboards
+                - img [ref=e51]
+                - text: Dashboards
+              - link "folk assistants" [ref=e53] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/assistants
+                - img [ref=e55]
+                - text: folk assistants
+          - generic [ref=e57]:
+            - region "My groups" [ref=e59]:
+              - generic [ref=e60]:
+                - generic [ref=e63] [cursor=pointer]: My groups
+                - generic [ref=e64]:
+                  - generic [ref=e65]:
+                    - button "Leads" [ref=e66]:
+                      - group "Leads" [ref=e67]:
+                        - link "Money-mouth face Leads" [ref=e68] [cursor=pointer]:
+                          - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/groups/6f4ae92d-8146-49d0-a2ce-d31c5045be1a
+                          - img "Money-mouth face" [ref=e71]
+                          - heading "Leads" [level=3] [ref=e74]
+                    - button "Clients" [ref=e75]:
+                      - group "Clients" [ref=e76]:
+                        - link "Speaking head Clients" [ref=e77] [cursor=pointer]:
+                          - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/groups/53923d4c-d550-4f30-b877-328a934ccce2
+                          - img "Speaking head" [ref=e80]
+                          - heading "Clients" [level=3] [ref=e83]
+                    - button "Partners" [ref=e84]:
+                      - group "Partners" [ref=e85]:
+                        - link "Handshake Partners" [ref=e86] [cursor=pointer]:
+                          - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/groups/920f7483-d28c-48ce-8d23-954ef77f8736
+                          - img "Handshake" [ref=e89]
+                          - heading "Partners" [level=3] [ref=e92]
+                    - status [ref=e93]
+                  - button "New group" [ref=e95] [cursor=pointer]:
+                    - img [ref=e97]
+                    - generic [ref=e99]: New group
+            - generic [ref=e100]:
+              - link "Settings" [ref=e101] [cursor=pointer]:
+                - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/profile
+                - img [ref=e103]
+                - text: Settings
+              - link "Invite members" [ref=e105] [cursor=pointer]:
+                - /url: /settings/ea8a867b-8256-4939-942e-d0760e9539fd/network-members?invite=true
+                - img [ref=e107]
+                - text: Invite members
+      - main [ref=e109]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - generic [ref=e112]:
+              - generic [ref=e113]:
+                - generic [ref=e115]:
+                  - button "Edit emoji" [ref=e116] [cursor=pointer]:
+                    - img "Money-mouth face" [ref=e117]
+                  - textbox [ref=e119]: Leads
+                - button "Add to favorites" [ref=e120] [cursor=pointer]:
+                  - img [ref=e121]
+              - generic [ref=e123]:
+                - generic "Group members" [ref=e125]:
+                  - img "Felix Maier" [ref=e127]:
+                    - img [ref=e128]
+                - button "Share" [ref=e129] [cursor=pointer]
+                - button "Import, export, duplicate…" [ref=e130] [cursor=pointer]:
+                  - img [ref=e131]
+            - generic [ref=e133]:
+              - generic [ref=e135]:
+                - generic:
+                  - button "Scroll left":
+                    - img
+                - tablist [ref=e137]:
+                  - button "Pipeline" [ref=e138]:
+                    - tab "Pipeline" [selected] [ref=e140] [cursor=pointer]:
+                      - img [ref=e142]
+                      - generic [ref=e144]: Pipeline
+                  - button "All leads" [ref=e145]:
+                    - tab "All leads" [ref=e147] [cursor=pointer]:
+                      - img [ref=e149]
+                      - generic [ref=e151]: All leads
+                  - status [ref=e152]
+                - generic:
+                  - button "Scroll right":
+                    - img
+              - button "Create new view" [ref=e153] [cursor=pointer]:
+                - img [ref=e154]
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - button "Add people" [ref=e159] [cursor=pointer]:
+                  - img [ref=e161]
+                  - text: Add people
+                - button "Email all" [ref=e163] [cursor=pointer]:
+                  - img [ref=e165]
+                  - text: Email all
+                - button "Enrich all" [ref=e167] [cursor=pointer]:
+                  - img [ref=e169]
+                  - text: Enrich all
+              - generic [ref=e174]:
+                - button "32 hidden fields" [ref=e175] [cursor=pointer]:
+                  - img [ref=e177]
+                  - generic [ref=e179]:
+                    - text: "32"
+                    - generic [ref=e180]: hidden fields
+                - button "Filter view" [ref=e181] [cursor=pointer]:
+                  - img [ref=e182]
+                - button "Group by Status" [ref=e184] [cursor=pointer]:
+                  - img [ref=e185]
+                - button "Search" [ref=e187] [cursor=pointer]:
+                  - img [ref=e188]
+          - listbox [ref=e190]:
+            - region "No status column" [ref=e192]:
+              - 'button "No status Total people in column: 2 Add people Hide column…" [ref=e193]':
+                - generic [ref=e194]:
+                  - generic [ref=e195]:
+                    - heading "No status" [level=2] [ref=e196]:
+                      - generic [ref=e197]: No status
+                    - 'button "Total people in column: 2" [ref=e198] [cursor=pointer]':
+                      - text: "2"
+                      - img [ref=e200]
+                  - generic [ref=e202]:
+                    - button "Add people" [ref=e204] [cursor=pointer]:
+                      - img [ref=e205]
+                    - button "Hide column…" [ref=e207] [cursor=pointer]:
+                      - img [ref=e208]
+              - generic [ref=e210]:
+                - list [ref=e211]:
+                  - option "m.kroener@bza-online.com m.kroener@bza-online.com" [ref=e213]:
+                    - generic [ref=e215] [cursor=pointer]:
+                      - img "m.kroener@bza-online.com" [ref=e217]:
+                        - img [ref=e219]
+                      - link "m.kroener@bza-online.com" [ref=e221]:
+                        - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/groups/6f4ae92d-8146-49d0-a2ce-d31c5045be1a/people/facda32f-a060-43c1-9956-443e961210e4
+                        - generic [ref=e222]: m.kroener@bza-online.com
+                  - option "rinor.ilazi04@icloud.com rinor.ilazi04@icloud.com Fields" [ref=e225]:
+                    - generic [ref=e226] [cursor=pointer]:
+                      - generic [ref=e227]:
+                        - img "rinor.ilazi04@icloud.com" [ref=e229]:
+                          - img [ref=e231]
+                        - link "rinor.ilazi04@icloud.com" [ref=e233]:
+                          - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/groups/6f4ae92d-8146-49d0-a2ce-d31c5045be1a/people/2203add5-daf9-4f0a-8407-7fd50515f7a3
+                          - generic [ref=e234]: rinor.ilazi04@icloud.com
+                      - list "Fields" [ref=e236]:
+                        - group [ref=e237]:
+                          - img [ref=e239]
+                          - term [ref=e242]: Company size
+                          - definition [ref=e243]:
+                            - list [ref=e244]:
+                              - listitem [ref=e245]:
+                                - generic [ref=e246]: 1-50
+                        - group [ref=e247]:
+                          - img [ref=e249]
+                          - term [ref=e252]: Trigger Type
+                          - definition [ref=e253]:
+                            - list [ref=e254]:
+                              - listitem [ref=e255]:
+                                - generic [ref=e256]: Cold-Search
+                - generic [ref=e258]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - region "First Touch column" [ref=e260]:
+              - 'button "First Touch Total people in column: 0 Add people Rename, hide, remove column…" [ref=e261]':
+                - generic [ref=e262]:
+                  - generic [ref=e263]:
+                    - button "First Touch" [ref=e264] [cursor=pointer]:
+                      - heading "First Touch" [level=2] [ref=e265]:
+                        - generic [ref=e266]: First Touch
+                    - 'button "Total people in column: 0" [ref=e267] [cursor=pointer]':
+                      - text: "0"
+                      - img [ref=e269]
+                  - generic [ref=e271]:
+                    - button "Add people" [ref=e273] [cursor=pointer]:
+                      - img [ref=e274]
+                    - button "Rename, hide, remove column…" [ref=e276] [cursor=pointer]:
+                      - img [ref=e277]
+              - generic [ref=e279]:
+                - list
+                - generic [ref=e281]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - region "Qualified column" [ref=e283]:
+              - 'button "Qualified Total people in column: 0 Add people Rename, hide, remove column…" [ref=e284]':
+                - generic [ref=e285]:
+                  - generic [ref=e286]:
+                    - button "Qualified" [ref=e287] [cursor=pointer]:
+                      - heading "Qualified" [level=2] [ref=e288]:
+                        - generic [ref=e289]: Qualified
+                    - 'button "Total people in column: 0" [ref=e290] [cursor=pointer]':
+                      - text: "0"
+                      - img [ref=e292]
+                  - generic [ref=e294]:
+                    - button "Add people" [ref=e296] [cursor=pointer]:
+                      - img [ref=e297]
+                    - button "Rename, hide, remove column…" [ref=e299] [cursor=pointer]:
+                      - img [ref=e300]
+              - generic [ref=e302]:
+                - list
+                - generic [ref=e304]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - region "Long-term Nurture column" [ref=e306]:
+              - 'button "Long-term Nurture Total people in column: 0 Add people Rename, hide, remove column…" [ref=e307]':
+                - generic [ref=e308]:
+                  - generic [ref=e309]:
+                    - button "Long-term Nurture" [ref=e310] [cursor=pointer]:
+                      - heading "Long-term Nurture" [level=2] [ref=e311]:
+                        - generic [ref=e312]: Long-term Nurture
+                    - 'button "Total people in column: 0" [ref=e313] [cursor=pointer]':
+                      - text: "0"
+                      - img [ref=e315]
+                  - generic [ref=e317]:
+                    - button "Add people" [ref=e319] [cursor=pointer]:
+                      - img [ref=e320]
+                    - button "Rename, hide, remove column…" [ref=e322] [cursor=pointer]:
+                      - img [ref=e323]
+              - generic [ref=e325]:
+                - list
+                - generic [ref=e327]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - region "Closed-Won column" [ref=e329]:
+              - 'button "Closed-Won Total people in column: 0 Add people Rename, hide, remove column…" [ref=e330]':
+                - generic [ref=e331]:
+                  - generic [ref=e332]:
+                    - button "Closed-Won" [ref=e333] [cursor=pointer]:
+                      - heading "Closed-Won" [level=2] [ref=e334]:
+                        - generic [ref=e335]: Closed-Won
+                    - 'button "Total people in column: 0" [ref=e336] [cursor=pointer]':
+                      - text: "0"
+                      - img [ref=e338]
+                  - generic [ref=e340]:
+                    - button "Add people" [ref=e342] [cursor=pointer]:
+                      - img [ref=e343]
+                    - button "Rename, hide, remove column…" [ref=e345] [cursor=pointer]:
+                      - img [ref=e346]
+              - generic [ref=e348]:
+                - list
+                - generic [ref=e350]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - region "Closed-Lost column" [ref=e352]:
+              - 'button "Closed-Lost Total people in column: 0 Add people Rename, hide, remove column…" [ref=e353]':
+                - generic [ref=e354]:
+                  - generic [ref=e355]:
+                    - button "Closed-Lost" [ref=e356] [cursor=pointer]:
+                      - heading "Closed-Lost" [level=2] [ref=e357]:
+                        - generic [ref=e358]: Closed-Lost
+                    - 'button "Total people in column: 0" [ref=e359] [cursor=pointer]':
+                      - text: "0"
+                      - img [ref=e361]
+                  - generic [ref=e363]:
+                    - button "Add people" [ref=e365] [cursor=pointer]:
+                      - img [ref=e366]
+                    - button "Rename, hide, remove column…" [ref=e368] [cursor=pointer]:
+                      - img [ref=e369]
+              - generic [ref=e371]:
+                - list
+                - generic [ref=e373]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - region "Connected column" [ref=e375]:
+              - button "Connected Add people Rename, hide, remove column…" [ref=e376]:
+                - generic [ref=e377]:
+                  - generic [ref=e378]:
+                    - button "Connected" [ref=e379] [cursor=pointer]:
+                      - heading "Connected" [level=2] [ref=e380]:
+                        - generic [ref=e381]: Connected
+                    - status [ref=e383]
+                  - generic [ref=e387]:
+                    - button "Add people" [ref=e389] [cursor=pointer]:
+                      - img [ref=e390]
+                    - button "Rename, hide, remove column…" [ref=e392] [cursor=pointer]:
+                      - img [ref=e393]
+              - generic [ref=e395]:
+                - list
+                - generic [ref=e397]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - region "Engaged column" [ref=e399]:
+              - button "Engaged Add people Rename, hide, remove column…" [ref=e400]:
+                - generic [ref=e401]:
+                  - generic [ref=e402]:
+                    - button "Engaged" [ref=e403] [cursor=pointer]:
+                      - heading "Engaged" [level=2] [ref=e404]:
+                        - generic [ref=e405]: Engaged
+                    - status [ref=e407]
+                  - generic [ref=e411]:
+                    - button "Add people" [ref=e413] [cursor=pointer]:
+                      - img [ref=e414]
+                    - button "Rename, hide, remove column…" [ref=e416] [cursor=pointer]:
+                      - img [ref=e417]
+              - generic [ref=e419]:
+                - list
+                - generic [ref=e421]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - region "Call Booked column" [ref=e423]:
+              - button "Call Booked Add people Rename, hide, remove column…" [ref=e424]:
+                - generic [ref=e425]:
+                  - generic [ref=e426]:
+                    - button "Call Booked" [ref=e427] [cursor=pointer]:
+                      - heading "Call Booked" [level=2] [ref=e428]:
+                        - generic [ref=e429]: Call Booked
+                    - status [ref=e431]
+                  - generic [ref=e435]:
+                    - button "Add people" [ref=e437] [cursor=pointer]:
+                      - img [ref=e438]
+                    - button "Rename, hide, remove column…" [ref=e440] [cursor=pointer]:
+                      - img [ref=e441]
+              - generic [ref=e443]:
+                - list
+                - generic [ref=e445]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - region "Proposal column" [ref=e447]:
+              - button "Proposal Add people Rename, hide, remove column…" [ref=e448]:
+                - generic [ref=e449]:
+                  - generic [ref=e450]:
+                    - button "Proposal" [ref=e451] [cursor=pointer]:
+                      - heading "Proposal" [level=2] [ref=e452]:
+                        - generic [ref=e453]: Proposal
+                    - status [ref=e455]
+                  - generic [ref=e459]:
+                    - button "Add people" [ref=e461] [cursor=pointer]:
+                      - img [ref=e462]
+                    - button "Rename, hide, remove column…" [ref=e464] [cursor=pointer]:
+                      - img [ref=e465]
+              - generic [ref=e467]:
+                - list
+                - generic [ref=e469]:
+                  - button "Add people":
+                    - generic:
+                      - img
+                    - text: Add people
+            - status [ref=e470]
+            - button "New status" [ref=e472] [cursor=pointer]
+  - generic:
+    - region "Notifications alt+T"
+  - dialog "Entity information" [ref=e473]:
+    - heading "Entity information" [level=2] [ref=e475]
+    - generic [ref=e476]: More details about the entity
+    - generic [ref=e477]:
+      - generic [ref=e479]:
+        - generic [ref=e480]:
+          - button "Close panel" [ref=e481] [cursor=pointer]:
+            - img [ref=e482]
+          - button "Display full width" [ref=e484] [cursor=pointer]:
+            - img [ref=e485]
+          - navigation "Groups" [ref=e488]:
+            - generic [ref=e489]:
+              - generic [ref=e490]: View in
+              - link "Money-mouth face Leads" [ref=e491] [cursor=pointer]:
+                - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/groups/6f4ae92d-8146-49d0-a2ce-d31c5045be1a/people/2203add5-daf9-4f0a-8407-7fd50515f7a3/details
+                - generic [ref=e492]:
+                  - img "Money-mouth face" [ref=e494]
+                  - generic [ref=e495]: Leads
+            - button "Add to group" [ref=e496] [cursor=pointer]:
+              - img [ref=e497]
+        - button "Copy link" [ref=e499] [cursor=pointer]
+        - button "New interaction, reminder, note…" [ref=e500] [cursor=pointer]:
+          - img [ref=e501]
+      - generic [ref=e503]:
+        - generic [ref=e504]:
+          - generic [ref=e505]:
+            - button "Avatar upload" [ref=e506]
+            - generic "Upload an image" [ref=e507] [cursor=pointer]:
+              - img [ref=e508]
+          - generic [ref=e512]:
+            - textbox "First name" [ref=e514]
+            - textbox "Last name" [ref=e516]
+        - generic [ref=e517]:
+          - button "Enrich" [ref=e518] [cursor=pointer]:
+            - img [ref=e520]
+            - text: Enrich
+          - button "Email" [ref=e525] [cursor=pointer]:
+            - img [ref=e527]
+            - text: Email
+      - generic [ref=e530]:
+        - generic [ref=e534] [cursor=pointer]:
+          - img [ref=e535]
+          - generic [ref=e541]: See the latest recap on rinor.ilazi04@icloud.com
+        - generic [ref=e542]:
+          - banner [ref=e543]:
+            - tablist [ref=e544]:
+              - tab "Details" [selected] [ref=e545] [cursor=pointer]
+              - tab "Team interactions 1" [ref=e546] [cursor=pointer]:
+                - text: Team interactions
+                - generic [ref=e547]: "1"
+              - tab "Notes 0" [ref=e548] [cursor=pointer]:
+                - text: Notes
+                - generic [ref=e549]: "0"
+              - tab "Reminders 0" [ref=e550] [cursor=pointer]:
+                - text: Reminders
+                - generic [ref=e551]: "0"
+          - tabpanel "Details" [ref=e552]:
+            - generic [ref=e554]:
+              - generic [ref=e555]:
+                - generic [ref=e556]:
+                  - button [ref=e557]:
+                    - group [ref=e558]:
+                      - generic [ref=e560] [cursor=pointer]:
+                        - button "Status" [ref=e563]:
+                          - generic [ref=e564]: Status
+                        - listitem [ref=e565]:
+                          - generic "Selected options" [ref=e568]:
+                            - button "Combobox trigger" [ref=e569]:
+                              - generic [ref=e570]: Select an option
+                  - button [ref=e571]:
+                    - group [ref=e572]:
+                      - generic [ref=e574] [cursor=pointer]:
+                        - button "Channel" [ref=e577]:
+                          - generic [ref=e578]: Channel
+                        - listitem [ref=e579]:
+                          - generic "Selected options" [ref=e582]:
+                            - button "Combobox trigger" [ref=e583]:
+                              - generic [ref=e584]: Select an option
+                  - button [ref=e585]:
+                    - group [ref=e586]:
+                      - generic [ref=e588] [cursor=pointer]:
+                        - button "Prospect owner" [ref=e591]:
+                          - generic [ref=e592]: Prospect owner
+                        - listitem [ref=e593]:
+                          - generic [ref=e597]:
+                            - generic [ref=e598]: User selection
+                            - combobox "User selection" [ref=e599]
+                  - button [ref=e600]:
+                    - group [ref=e601]:
+                      - generic [ref=e603] [cursor=pointer]:
+                        - button "Deal value" [ref=e606]:
+                          - generic [ref=e607]: Deal value
+                        - listitem [ref=e608]:
+                          - button "Edit value" [ref=e610]:
+                            - button "Edit value" [ref=e611]: Add a value
+                  - button [ref=e612]:
+                    - group [ref=e613]:
+                      - generic [ref=e615] [cursor=pointer]:
+                        - button "Company size" [ref=e618]:
+                          - generic [ref=e619]: Company size
+                        - listitem [ref=e620]:
+                          - generic "Selected options" [ref=e623]:
+                            - button "Combobox trigger" [ref=e624]:
+                              - generic [ref=e626]: 1-50
+                  - button [ref=e627]:
+                    - group [ref=e628]:
+                      - generic [ref=e630] [cursor=pointer]:
+                        - button "Next steps" [ref=e633]:
+                          - generic [ref=e634]: Next steps
+                        - listitem [ref=e635]:
+                          - generic [ref=e638]: Add text
+                  - button [ref=e639]:
+                    - group [ref=e640]:
+                      - generic [ref=e642] [cursor=pointer]:
+                        - button "Company vertical" [ref=e645]:
+                          - generic [ref=e646]: Company vertical
+                        - listitem [ref=e647]:
+                          - generic "Selected options" [ref=e650]:
+                            - button "Combobox trigger" [ref=e651]:
+                              - generic [ref=e653]: Other
+                  - button [ref=e654]:
+                    - group [ref=e655]:
+                      - generic [ref=e657] [cursor=pointer]:
+                        - button "Closed date" [ref=e660]:
+                          - generic [ref=e661]: Closed date
+                        - listitem [ref=e662]:
+                          - generic "Edit value" [ref=e665]: DD/MM/YYYY
+                  - button [ref=e666]:
+                    - group [ref=e667]:
+                      - generic [ref=e669] [cursor=pointer]:
+                        - button "Lost reason" [ref=e672]:
+                          - generic [ref=e673]: Lost reason
+                        - listitem [ref=e674]:
+                          - generic "Selected options" [ref=e677]:
+                            - button "Combobox trigger" [ref=e678]:
+                              - generic [ref=e679]: Select an option
+                  - button [ref=e680]:
+                    - group [ref=e681]:
+                      - generic [ref=e683] [cursor=pointer]:
+                        - button "First name" [ref=e686]:
+                          - generic [ref=e687]: First name
+                        - listitem [ref=e688]:
+                          - button "Edit value" [ref=e690]: Add a first name
+                  - button [ref=e691]:
+                    - group [ref=e692]:
+                      - generic [ref=e694] [cursor=pointer]:
+                        - button "Last name" [ref=e697]:
+                          - generic [ref=e698]: Last name
+                        - listitem [ref=e699]:
+                          - button "Edit value" [ref=e701]: Add a last name
+                  - button [ref=e702]:
+                    - group [ref=e703]:
+                      - generic [ref=e705] [cursor=pointer]:
+                        - button "Emails" [ref=e708]:
+                          - generic [ref=e709]: Emails
+                        - listitem [ref=e710]:
+                          - button "Edit value" [ref=e712]:
+                            - generic [ref=e713]: rinor.ilazi04@icloud.com
+                          - generic "(Primary)" [ref=e715]:
+                            - img [ref=e716]
+                  - button [ref=e718]:
+                    - group [ref=e719]:
+                      - generic [ref=e721] [cursor=pointer]:
+                        - button "Phones" [ref=e724]:
+                          - generic [ref=e725]: Phones
+                        - listitem [ref=e726]:
+                          - button "Edit value" [ref=e728]: Add a phone number
+                  - button [ref=e729]:
+                    - group [ref=e730]:
+                      - generic [ref=e732] [cursor=pointer]:
+                        - button "Job title" [ref=e735]:
+                          - generic [ref=e736]: Job title
+                        - listitem [ref=e737]:
+                          - button "Edit value" [ref=e739]: Add a job title
+                  - button [ref=e740]:
+                    - group [ref=e741]:
+                      - generic [ref=e743] [cursor=pointer]:
+                        - button "Birthday" [ref=e746]:
+                          - generic [ref=e747]: Birthday
+                        - listitem [ref=e748]:
+                          - generic "Edit value" [ref=e751]: DD/MM/YYYY
+                  - button [ref=e752]:
+                    - group [ref=e753]:
+                      - generic [ref=e755] [cursor=pointer]:
+                        - button "Groups" [ref=e758]:
+                          - generic [ref=e759]: Groups
+                        - listitem [ref=e760]:
+                          - generic [ref=e763]:
+                            - img "Money-mouth face" [ref=e765]
+                            - link "Leads" [ref=e766]:
+                              - /url: /apps/contacts/network/ea8a867b-8256-4939-942e-d0760e9539fd/groups/6f4ae92d-8146-49d0-a2ce-d31c5045be1a
+                  - button [ref=e767]:
+                    - group [ref=e768]:
+                      - generic [ref=e770] [cursor=pointer]:
+                        - button "My total interactions" [ref=e773]:
+                          - generic [ref=e774]: My total interactions
+                        - listitem [ref=e775]:
+                          - generic [ref=e777]: "1"
+                  - button [ref=e778]:
+                    - group [ref=e779]:
+                      - generic [ref=e781] [cursor=pointer]:
+                        - button "My last interaction" [ref=e784]:
+                          - generic [ref=e785]: My last interaction
+                        - listitem [ref=e786]:
+                          - generic [ref=e788]: 5 Mar 2026, 17:00
+                  - button [ref=e789]:
+                    - group [ref=e790]:
+                      - generic [ref=e792] [cursor=pointer]:
+                        - button "Team last interaction" [ref=e795]:
+                          - generic [ref=e796]: Team last interaction
+                        - listitem [ref=e797]:
+                          - generic [ref=e799]: No interactions
+                  - button [ref=e800]:
+                    - group [ref=e801]:
+                      - generic [ref=e803] [cursor=pointer]:
+                        - button "Last interaction by" [ref=e806]:
+                          - generic [ref=e807]: Last interaction by
+                        - listitem [ref=e808]:
+                          - generic [ref=e810]: No interactions
+                  - button [ref=e811]:
+                    - group [ref=e812]:
+                      - generic [ref=e814] [cursor=pointer]:
+                        - button "Addresses" [ref=e817]:
+                          - generic [ref=e818]: Addresses
+                        - listitem [ref=e819]:
+                          - generic [ref=e824]:
+                            - generic [ref=e825]: Address selection
+                            - combobox "Address selection" [ref=e826]
+                  - button [ref=e827]:
+                    - group [ref=e828]:
+                      - generic [ref=e830] [cursor=pointer]:
+                        - button "Urls" [ref=e833]:
+                          - generic [ref=e834]: Urls
+                        - listitem [ref=e835]:
+                          - button "Edit value" [ref=e837]: Add url
+                  - button [ref=e838]:
+                    - group [ref=e839]:
+                      - generic [ref=e841] [cursor=pointer]:
+                        - button "Gender" [ref=e844]:
+                          - generic [ref=e845]: Gender
+                        - listitem [ref=e846]:
+                          - list "Selected gender" [ref=e850]:
+                            - generic [ref=e851]:
+                              - generic [ref=e852]: Gender selection
+                              - combobox "Gender selection" [ref=e853]
+                  - button [ref=e854]:
+                    - group [ref=e855]:
+                      - generic [ref=e857] [cursor=pointer]:
+                        - button "Companies" [ref=e860]:
+                          - generic [ref=e861]: Companies
+                        - listitem [ref=e862]:
+                          - generic [ref=e867]:
+                            - generic [ref=e868]: Company selection
+                            - combobox "Company selection" [ref=e869]
+                  - button [ref=e870]:
+                    - group [ref=e871]:
+                      - generic [ref=e873] [cursor=pointer]:
+                        - button "Strongest connection" [ref=e876]:
+                          - generic [ref=e877]: Strongest connection
+                        - listitem [ref=e878]:
+                          - generic [ref=e880]: No connection
+                  - button [ref=e881]:
+                    - group [ref=e882]:
+                      - generic [ref=e884] [cursor=pointer]:
+                        - button "Description" [ref=e887]:
+                          - generic [ref=e888]: Description
+                        - listitem [ref=e889]:
+                          - generic [ref=e891]: Add description
+                  - button [ref=e892]:
+                    - group [ref=e893]:
+                      - generic [ref=e895] [cursor=pointer]:
+                        - button "Created at" [ref=e898]:
+                          - generic [ref=e899]: Created at
+                        - listitem [ref=e900]:
+                          - generic [ref=e902]: 8 May 2026, 19:54
+                  - button [ref=e903]:
+                    - group [ref=e904]:
+                      - generic [ref=e906] [cursor=pointer]:
+                        - button "Created by" [ref=e909]:
+                          - generic [ref=e910]: Created by
+                        - listitem [ref=e911]:
+                          - generic [ref=e914]:
+                            - img "Felix Maier" [ref=e916]:
+                              - img [ref=e917]
+                            - generic [ref=e918]: Felix Maier
+                  - button [ref=e919]:
+                    - group [ref=e920]:
+                      - generic [ref=e922] [cursor=pointer]:
+                        - button "Added to group at" [ref=e925]:
+                          - generic [ref=e926]: Added to group at
+                        - listitem [ref=e927]:
+                          - generic [ref=e929]: 9 May 2026, 14:13
+                  - button [ref=e930]:
+                    - group [ref=e931]:
+                      - generic [ref=e933] [cursor=pointer]:
+                        - button "Added to group by" [ref=e936]:
+                          - generic [ref=e937]: Added to group by
+                        - listitem [ref=e938]:
+                          - generic [ref=e941]:
+                            - img "Felix Maier" [ref=e943]:
+                              - img [ref=e944]
+                            - generic [ref=e945]: Felix Maier
+                  - button [ref=e946]:
+                    - group [ref=e947]:
+                      - generic [ref=e949] [cursor=pointer]:
+                        - button "Trigger Type" [ref=e952]:
+                          - generic [ref=e953]: Trigger Type
+                        - listitem [ref=e954]:
+                          - generic "Selected options" [ref=e957]:
+                            - button "Combobox trigger" [ref=e958]:
+                              - generic [ref=e960]: Cold-Search
+                  - button [ref=e961]:
+                    - group [ref=e962]:
+                      - generic [ref=e964] [cursor=pointer]:
+                        - button "Trigger Source URL" [ref=e967]:
+                          - generic [ref=e968]: Trigger Source URL
+                        - listitem [ref=e969]:
+                          - generic [ref=e972]: Add text
+                  - button [ref=e973]:
+                    - group [ref=e974]:
+                      - generic [ref=e976] [cursor=pointer]:
+                        - button "Day-0 Sent" [ref=e979]:
+                          - generic [ref=e980]: Day-0 Sent
+                        - listitem [ref=e981]:
+                          - generic "Edit value" [ref=e984]: DD/MM/YYYY
+                  - button [ref=e985]:
+                    - group [ref=e986]:
+                      - generic [ref=e988] [cursor=pointer]:
+                        - button "Date" [ref=e991]:
+                          - generic [ref=e992]: Date
+                        - listitem [ref=e993]:
+                          - generic "Edit value" [ref=e996]: DD/MM/YYYY
+                - status [ref=e997]
+              - contentinfo [ref=e998]:
+                - button "New field" [ref=e999] [cursor=pointer]
+                - button "Visible fields" [ref=e1000] [cursor=pointer]
+  - status [ref=e1001]
+  - iframe [ref=e1002]:
+    

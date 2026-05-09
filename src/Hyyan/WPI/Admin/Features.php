@@ -1,8 +1,9 @@
 <?php
 
 /**
- * This file is part of the hyyan/woo-poly-integration plugin.
- * (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * This file is part of the woo-poly-integration plugin.
+ * Original (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * Modernized fork (c) IntegrIT Solutions.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -70,15 +71,11 @@ class Features extends AbstractSettings
                         'Use order language whenever WooCommerce sends order emails', 'woo-poly-integration'
                 ),
             ),
-            array(
-                'name' => 'reports',
-                'type' => 'checkbox',
-                'default' => 'on',
-                'label' => __('Reports', 'woo-poly-integration'),
-                'desc' => __(
-                        'Enable reports language filtering and combining', 'woo-poly-integration'
-                ),
-            ),
+            // Reports setting removed in v2.0.0 — the Reports module was dropped.
+            // The legacy WooCommerce Reports screen is on Woo's roadmap for retirement
+            // and the new wc-admin Analytics has no documented per-language extension
+            // API. The stored 'reports' value (if present from v1.x) is left intact in
+            // the options for reference; nothing reads it.
             array(
                 'name' => 'coupons',
                 'type' => 'checkbox',

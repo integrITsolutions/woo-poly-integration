@@ -1,8 +1,9 @@
 <?php
 
 /**
- * This file is part of the hyyan/woo-poly-integration plugin.
- * (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * This file is part of the woo-poly-integration plugin.
+ * Original (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * Modernized fork (c) IntegrIT Solutions.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -23,10 +24,29 @@ class Plugin
 {
 
     /** Required woocommerce version */
-    const WOOCOMMERCE_VERSION = '3.0.0';
+    const WOOCOMMERCE_VERSION = '9.0.0';
 
     /** Required polylang version */
-    const POLYLANG_VERSION = '2.0.0';
+    const POLYLANG_VERSION = '3.4.5';
+
+    /** Option: pending v2 order-language migration admin notice. */
+    const OPTION_V2_MIGRATION_NOTICE_PENDING = 'wpi_v2_migration_notice_pending';
+
+    /** Option: dismissed v2 order-language migration admin notice. */
+    const OPTION_V2_MIGRATION_NOTICE_DISMISSED = 'wpi_v2_migration_notice_dismissed';
+
+    /** Transient used to render one-time migration success notice. */
+    const TRANSIENT_V2_MIGRATION_RESULT = 'wpi_v2_migration_result';
+
+    /**
+     * Plugin basename (folder/file relative to WP plugins dir). Computed at runtime
+     * so the value remains correct when the folder name differs from the slug
+     * (zip-suffix updates, vendor relocations, custom deploys).
+     */
+    public static function pluginBasename()
+    {
+        return plugin_basename(Hyyan_WPI_DIR);
+    }
 
     /**
      * Construct the plugin.
@@ -36,21 +56,34 @@ class Plugin
         FlashMessages::register();
 
         add_action('init', array($this, 'activate'));
-        add_action('plugins_loaded', array($this, 'loadTextDomain'));
+        // Load textdomain on `init` (priority 1) per WordPress 6.7 JIT translation
+        // requirements. Calling __() before `init` triggers a _doing_it_wrong notice.
+        // @see https://make.wordpress.org/core/2024/10/21/i18n-improvements-6-7/
+        add_action('init', array($this, 'loadTextDomain'), 1);
 		add_action( 'admin_init', array( __CLASS__, 'admin_activate' ) );
 
         add_action( 'pll_add_language', array( __CLASS__, 'handleNewLanguage' ) );
 
         if ( is_admin() ) {
-          if ( defined( 'DOING_AJAX' ) || (function_exists( 'is_ajax' ) && is_ajax()) ) {
-            //skipping ajax
-          } else {
-            $wcpagecheck_passed = get_option( 'wpi_wcpagecheck_passed' );
-            $check_pages		 = Settings::getOption( 'checkpages', Features::getID(), 0 );
-            if ( ($check_pages && $check_pages != 'off') || ! ($wcpagecheck_passed) ) {
-                add_action( 'current_screen', array( __CLASS__, 'wpi_ensure_woocommerce_pages_translated' ) );
+            add_action('admin_notices', function () {
+                self::renderV2MigrationNotices();
+            });
+            add_action('admin_post_wpi_run_migration', function () {
+                self::handleV2MigrationRunRequest();
+            });
+            add_action('admin_post_wpi_dismiss_migration_notice', function () {
+                self::handleV2MigrationDismissRequest();
+            });
+
+            if ( wp_doing_ajax() ) {
+                //skipping ajax
+            } else {
+                $wcpagecheck_passed = get_option( 'wpi_wcpagecheck_passed' );
+                $check_pages		 = Settings::getOption( 'checkpages', Features::getID(), 0 );
+                if ( ($check_pages && $check_pages != 'off') || ! ($wcpagecheck_passed) ) {
+                    add_action( 'current_screen', array( __CLASS__, 'wpi_ensure_woocommerce_pages_translated' ) );
+                }
             }
-          }
         }
     }
 
@@ -103,7 +136,7 @@ class Plugin
                 MessagesInterface::MSG_SUPPORT, static::getView('Messages/support')
         );
 
-        add_filter('plugin_action_links_woo-poly-integration/__init__.php', function ($links) {
+        add_filter('plugin_action_links_' . self::pluginBasename(), function ($links) {
             $baseURL = is_multisite() ? get_admin_url() : admin_url();
             $settingsLinks = array(
                 static::settingsLinkHTML(),
@@ -135,12 +168,16 @@ class Plugin
 		return '<a href="'
 		. $baseURL
 		. 'options-general.php?page=hyyan-wpi">'
-		. __( 'Settings', ' woo-poly-integration' )
+		. __( 'Settings', 'woo-poly-integration' )
 		. '</a>';
 	}
 
     /**
      * Check if the plugin can be activated.
+     *
+     * Detects Polylang via its public function API (works for both Polylang Free and
+     * Polylang Pro since Pro doesn't register the unprefixed `Polylang` class).
+     * @see https://polylang.pro/documentation/support/developers/function-reference/
      *
      * @return bool true if can be activated , false otherwise
      */
@@ -149,9 +186,12 @@ class Plugin
         $polylang = false;
         $woocommerce = false;
 
-        /* check polylang plugin */
-        if (class_exists('Polylang')) {
-            if (isset($GLOBALS['polylang'], \PLL()->model, PLL()->links_model)) {
+        /* check polylang plugin via public function API */
+        if (function_exists('pll_get_post_language') && function_exists('pll_default_language')) {
+            // PLL() and its model are still required by code paths that touch internal API.
+            // Tested presence of the global is more reliable than class detection across Free/Pro.
+            // @internal Polylang internal API; reverify on Polylang minor upgrades.
+            if (function_exists('PLL') && isset($GLOBALS['polylang']) && PLL() && isset(PLL()->model)) {
                 if (pll_default_language()) {
                     $polylang = true;
                 }
@@ -176,24 +216,246 @@ class Plugin
      * @param num $newVersion
      * @param num $oldVersion
      */
-	public static function onUpgrade( $newVersion, $oldVersion ) 
-	{
-  		update_option( 'wpi_version', self::getVersion() );
-      $features = get_option( Admin\Features::getID() );
-      if ( ! $features ) {
-			$features = unserialize( 'a:13:{s:13:"fields-locker";s:2:"on";s:6:"emails";s:2:"on";s:7:"reports";s:2:"on";s:7:"coupons";s:2:"on";s:5:"stock";s:2:"on";s:10:"categories";s:2:"on";s:4:"tags";s:2:"on";s:10:"attributes";s:2:"on";s:24:"new-translation-defaults";s:1:"1";s:13:"localenumbers";s:2:"on";s:10:"importsync";s:2:"on";s:10:"checkpages";s:3:"off";s:19:"language-downloader";s:2:"on";}' );
-        update_option( Admin\Features::getID(), $features );
-      }
-      Taxonomies\Taxonomies::updatePolyLangFromWooPolyFeatures( $features, $features, Admin\Features::getID() );
+    public static function onUpgrade($newVersion, $oldVersion)
+    {
+        update_option('wpi_version', self::getVersion());
 
-      $metas = get_option( Admin\MetasList::getID() );
-      if ( ! $metas ) {
-        $metas = unserialize( 'a:9:{s:7:"general";a:10:{s:12:"product-type";s:12:"product-type";s:8:"_virtual";s:8:"_virtual";s:4:"_sku";s:4:"_sku";s:11:"_upsell_ids";s:11:"_upsell_ids";s:14:"_crosssell_ids";s:14:"_crosssell_ids";s:9:"_children";s:9:"_children";s:22:"_product_image_gallery";s:22:"_product_image_gallery";s:11:"total_sales";s:11:"total_sales";s:25:"_translation_porduct_type";s:25:"_translation_porduct_type";s:11:"_visibility";s:11:"_visibility";}s:8:"polylang";a:3:{s:10:"menu_order";s:10:"menu_order";s:13:"_thumbnail_id";s:13:"_thumbnail_id";s:14:"comment_status";s:14:"comment_status";}s:5:"stock";a:6:{s:13:"_manage_stock";s:13:"_manage_stock";s:6:"_stock";s:6:"_stock";s:11:"_backorders";s:11:"_backorders";s:13:"_stock_status";s:13:"_stock_status";s:17:"_low_stock_amount";s:17:"_low_stock_amount";s:18:"_sold_individually";s:18:"_sold_individually";}s:8:"shipping";a:5:{s:7:"_weight";s:7:"_weight";s:7:"_length";s:7:"_length";s:6:"_width";s:6:"_width";s:7:"_height";s:7:"_height";s:22:"product_shipping_class";s:22:"product_shipping_class";}s:10:"Attributes";a:3:{s:19:"_product_attributes";s:19:"_product_attributes";s:26:"_custom_product_attributes";s:26:"_custom_product_attributes";s:19:"_default_attributes";s:19:"_default_attributes";}s:12:"Downloadable";a:5:{s:13:"_downloadable";s:13:"_downloadable";s:19:"_downloadable_files";s:19:"_downloadable_files";s:15:"_download_limit";s:15:"_download_limit";s:16:"_download_expiry";s:16:"_download_expiry";s:14:"_download_type";s:14:"_download_type";}s:5:"Taxes";a:2:{s:11:"_tax_status";s:11:"_tax_status";s:10:"_tax_class";s:10:"_tax_class";}s:5:"price";a:5:{s:14:"_regular_price";s:14:"_regular_price";s:11:"_sale_price";s:11:"_sale_price";s:22:"_sale_price_dates_from";s:22:"_sale_price_dates_from";s:20:"_sale_price_dates_to";s:20:"_sale_price_dates_to";s:6:"_price";s:6:"_price";}s:9:"Variables";a:12:{s:20:"_min_variation_price";s:20:"_min_variation_price";s:20:"_max_variation_price";s:20:"_max_variation_price";s:23:"_min_price_variation_id";s:23:"_min_price_variation_id";s:23:"_max_price_variation_id";s:23:"_max_price_variation_id";s:28:"_min_variation_regular_price";s:28:"_min_variation_regular_price";s:28:"_max_variation_regular_price";s:28:"_max_variation_regular_price";s:31:"_min_regular_price_variation_id";s:31:"_min_regular_price_variation_id";s:31:"_max_regular_price_variation_id";s:31:"_max_regular_price_variation_id";s:25:"_min_variation_sale_price";s:25:"_min_variation_sale_price";s:25:"_max_variation_sale_price";s:25:"_max_variation_sale_price";s:28:"_min_sale_price_variation_id";s:28:"_min_sale_price_variation_id";s:28:"_max_sale_price_variation_id";s:28:"_max_sale_price_variation_id";}}' );
-        update_option( Admin\MetasList::getID(), $metas );
-        Taxonomies\Taxonomies::updatePolyLangFromWooPolyMetas( $metas, $metas, Admin\MetasList::getID() );
-      }
+        $features = get_option(Admin\Features::getID());
+        if (!$features) {
+            $features = self::getDefaultFeatures();
+            update_option(Admin\Features::getID(), $features);
+        }
+        Taxonomies\Taxonomies::updatePolyLangFromWooPolyFeatures($features, $features, Admin\Features::getID());
+
+        $metas = get_option(Admin\MetasList::getID());
+        if (!$metas) {
+            $metas = self::getDefaultMetas();
+            update_option(Admin\MetasList::getID(), $metas);
+            Taxonomies\Taxonomies::updatePolyLangFromWooPolyMetas($metas, $metas, Admin\MetasList::getID());
+        }
+
+        $is_v2_or_newer = version_compare((string) $newVersion, '2.0.0', '>=');
+        $old_version = is_string($oldVersion) ? trim($oldVersion) : '';
+        $is_from_v1 = (strpos($old_version, '1.') === 0);
+        $is_fresh_install = ($old_version === '');
+        if ($is_v2_or_newer && ($is_from_v1 || $is_fresh_install)) {
+            update_option(self::OPTION_V2_MIGRATION_NOTICE_PENDING, 1);
+            update_option(self::OPTION_V2_MIGRATION_NOTICE_DISMISSED, 0);
+
+            if ($is_fresh_install) {
+                Order::migrateLegacyTaxonomyToMeta();
+                delete_option(self::OPTION_V2_MIGRATION_NOTICE_PENDING);
+                update_option(self::OPTION_V2_MIGRATION_NOTICE_DISMISSED, 1);
+            }
+        }
 
         flush_rewrite_rules(true);
+    }
+
+    /**
+     * Render v2 migration warning/success admin notices.
+     */
+    private static function renderV2MigrationNotices()
+    {
+        if (!current_user_can('manage_woocommerce')) {
+            return;
+        }
+
+        $migrated_count = get_transient(self::TRANSIENT_V2_MIGRATION_RESULT);
+        if ($migrated_count !== false) {
+            delete_transient(self::TRANSIENT_V2_MIGRATION_RESULT);
+            echo '<div class="notice notice-success is-dismissible"><p>'
+                . esc_html(sprintf(__('Order language migration completed. Updated %d orders.', 'woo-poly-integration'), (int) $migrated_count))
+                . '</p></div>';
+        }
+
+        if (!self::shouldShowV2MigrationNotice()) {
+            return;
+        }
+
+        echo '<div class="notice notice-warning"><p>'
+            . esc_html__('Woo-Poly Integration v2 stores order language in order meta for HPOS compatibility. Run the one-time migration to backfill legacy orders.', 'woo-poly-integration')
+            . '</p><p>';
+
+        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="display:inline-block;margin-right:8px;">';
+        wp_nonce_field('wpi_run_migration');
+        echo '<input type="hidden" name="action" value="wpi_run_migration" />';
+        submit_button(__('Run migration', 'woo-poly-integration'), 'primary', 'submit', false);
+        echo '</form>';
+
+        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="display:inline-block;">';
+        wp_nonce_field('wpi_dismiss_migration_notice');
+        echo '<input type="hidden" name="action" value="wpi_dismiss_migration_notice" />';
+        submit_button(__('Dismiss', 'woo-poly-integration'), 'secondary', 'submit', false);
+        echo '</form>';
+
+        echo '</p></div>';
+    }
+
+    /**
+     * Should we display the migration admin notice.
+     *
+     * @return bool
+     */
+    private static function shouldShowV2MigrationNotice()
+    {
+        if ((bool) get_option(self::OPTION_V2_MIGRATION_NOTICE_DISMISSED, false)) {
+            return false;
+        }
+
+        return (bool) get_option(self::OPTION_V2_MIGRATION_NOTICE_PENDING, false);
+    }
+
+    /**
+     * Handle "Run migration" admin POST action.
+     */
+    private static function handleV2MigrationRunRequest()
+    {
+        if (!current_user_can('manage_woocommerce')) {
+            self::redirectAfterMigrationNoticeAction();
+        }
+        check_admin_referer('wpi_run_migration');
+
+        $migrated_count = Order::migrateLegacyTaxonomyToMeta();
+        delete_option(self::OPTION_V2_MIGRATION_NOTICE_PENDING);
+        update_option(self::OPTION_V2_MIGRATION_NOTICE_DISMISSED, 1);
+        set_transient(self::TRANSIENT_V2_MIGRATION_RESULT, (int) $migrated_count, MINUTE_IN_SECONDS);
+
+        self::redirectAfterMigrationNoticeAction();
+    }
+
+    /**
+     * Handle "Dismiss" admin POST action.
+     */
+    private static function handleV2MigrationDismissRequest()
+    {
+        if (!current_user_can('manage_woocommerce')) {
+            self::redirectAfterMigrationNoticeAction();
+        }
+        check_admin_referer('wpi_dismiss_migration_notice');
+
+        delete_option(self::OPTION_V2_MIGRATION_NOTICE_PENDING);
+        update_option(self::OPTION_V2_MIGRATION_NOTICE_DISMISSED, 1);
+
+        self::redirectAfterMigrationNoticeAction();
+    }
+
+    /**
+     * Redirect back to referring admin screen after notice action.
+     */
+    private static function redirectAfterMigrationNoticeAction()
+    {
+        $redirect_to = wp_get_referer();
+        if (!$redirect_to) {
+            $redirect_to = admin_url('plugins.php');
+        }
+        wp_safe_redirect($redirect_to);
+        exit;
+    }
+
+    /**
+     * Default features option. Replaces v1.x's serialize-blob string. The 'reports'
+     * key was removed in v2.0.0 — see Plugin::registerCore() for the rationale.
+     *
+     * @return array
+     */
+    protected static function getDefaultFeatures()
+    {
+        return array(
+            'fields-locker'            => 'on',
+            'emails'                   => 'on',
+            // 'reports' removed in v2.0.0.
+            'coupons'                  => 'on',
+            'stock'                    => 'on',
+            'categories'               => 'on',
+            'tags'                     => 'on',
+            'attributes'               => 'on',
+            'new-translation-defaults' => '1',
+            'localenumbers'            => 'on',
+            'importsync'               => 'on',
+            'checkpages'               => 'off',
+            'language-downloader'      => 'on',
+        );
+    }
+
+    /**
+     * Default product-meta-sync option. Replaces v1.x's serialize-blob string.
+     *
+     * @return array
+     */
+    protected static function getDefaultMetas()
+    {
+        return array(
+            'general' => array(
+                'product-type'              => 'product-type',
+                '_virtual'                  => '_virtual',
+                '_sku'                      => '_sku',
+                '_upsell_ids'               => '_upsell_ids',
+                '_crosssell_ids'            => '_crosssell_ids',
+                '_children'                 => '_children',
+                '_product_image_gallery'    => '_product_image_gallery',
+                'total_sales'               => 'total_sales',
+                '_translation_porduct_type' => '_translation_porduct_type',
+                '_visibility'               => '_visibility',
+            ),
+            'polylang' => array(
+                'menu_order'     => 'menu_order',
+                '_thumbnail_id'  => '_thumbnail_id',
+                'comment_status' => 'comment_status',
+            ),
+            'stock' => array(
+                '_manage_stock'      => '_manage_stock',
+                '_stock'             => '_stock',
+                '_backorders'        => '_backorders',
+                '_stock_status'      => '_stock_status',
+                '_low_stock_amount'  => '_low_stock_amount',
+                '_sold_individually' => '_sold_individually',
+            ),
+            'shipping' => array(
+                '_weight'                => '_weight',
+                '_length'                => '_length',
+                '_width'                 => '_width',
+                '_height'                => '_height',
+                'product_shipping_class' => 'product_shipping_class',
+            ),
+            'Attributes' => array(
+                '_product_attributes'        => '_product_attributes',
+                '_custom_product_attributes' => '_custom_product_attributes',
+                '_default_attributes'        => '_default_attributes',
+            ),
+            'Downloadable' => array(
+                '_downloadable'       => '_downloadable',
+                '_downloadable_files' => '_downloadable_files',
+                '_download_limit'     => '_download_limit',
+                '_download_expiry'    => '_download_expiry',
+                '_download_type'      => '_download_type',
+            ),
+            'Taxes' => array(
+                '_tax_status' => '_tax_status',
+                '_tax_class'  => '_tax_class',
+            ),
+            'price' => array(
+                '_regular_price'         => '_regular_price',
+                '_sale_price'            => '_sale_price',
+                '_sale_price_dates_from' => '_sale_price_dates_from',
+                '_sale_price_dates_to'   => '_sale_price_dates_to',
+                '_price'                 => '_price',
+            ),
+            'Variables' => array(
+                '_min_variation_price'            => '_min_variation_price',
+                '_max_variation_price'            => '_max_variation_price',
+                '_min_price_variation_id'         => '_min_price_variation_id',
+                '_max_price_variation_id'         => '_max_price_variation_id',
+                '_min_variation_regular_price'    => '_min_variation_regular_price',
+                '_max_variation_regular_price'    => '_max_variation_regular_price',
+                '_min_regular_price_variation_id' => '_min_regular_price_variation_id',
+                '_max_regular_price_variation_id' => '_max_regular_price_variation_id',
+                '_min_variation_sale_price'       => '_min_variation_sale_price',
+                '_max_variation_sale_price'       => '_max_variation_sale_price',
+                '_min_sale_price_variation_id'    => '_min_sale_price_variation_id',
+                '_max_sale_price_variation_id'    => '_max_sale_price_variation_id',
+            ),
+        );
     }
 
     /**
@@ -248,7 +510,16 @@ class Plugin
         new Privacy();
         new Language();
         new Coupon();
-        new Reports();
+        // Reports module dropped in v2.0.0:
+        //   The legacy WooCommerce Reports screen (`woocommerce_page_wc-reports`) is on
+        //   WooCommerce's roadmap for retirement, and the new WC Analytics dashboard
+        //   has no documented extension API for per-language filtering. The previous
+        //   integration relied on internal Polylang SQL helpers
+        //   (PLL()->model->post->join_clause / where_clause) and the legacy CPT-only
+        //   wc_reports_* hooks. Both are unsuitable as the long-term integration
+        //   surface. Users needing per-language reporting can install a dedicated
+        //   analytics plugin or open an issue to discuss a wc-admin Analytics
+        //   integration.
         new Widgets\SearchWidget();
         new Widgets\LayeredNav();
         new Gateways();
@@ -269,7 +540,7 @@ class Plugin
      */
     public static function plugin_row_meta($links, $file)
     {
-        if ('woo-poly-integration/__init__.php' == $file) {
+        if (self::pluginBasename() === $file) {
             $row_meta = array(
                 'docs' => '<a target="_blank" href="https://github.com/hyyan/woo-poly-integration/wiki"'
                 . '" aria-label="' . esc_attr__('View WooCommerce-Polylang Integration documentation', 'woo-poly-integration') . '">'
@@ -292,9 +563,9 @@ class Plugin
 	public static function wpi_ensure_woocommerce_pages_translated() {
 
 		//to avoid repetition, only do this when we are going to be alerted to the results
-		if ( ! is_admin() || defined( 'DOING_AJAX' ) || (function_exists( 'is_ajax' ) && is_ajax()) ) {
-			return;
-		}
+			if ( ! is_admin() || wp_doing_ajax() ) {
+				return;
+			}
 
 		/*
 		 * only recheck this when on relevant pages such as pages list,
@@ -380,10 +651,11 @@ class Plugin
 		$lang_slugs	 = pll_languages_list();
 
 		//for each page, check all the translations and fill in and link where necessary
-		foreach ( $pages as $page_type => $orig_page_id ) {
-			$changed	 = false;
-			$orig_page = get_post( $orig_page_id );
-			if ( $orig_page ) {
+			foreach ( $pages as $page_type => $orig_page_id ) {
+				$changed	  = false;
+				$translations = array();
+				$orig_page = get_post( $orig_page_id );
+				if ( $orig_page ) {
 				$orig_postlocale = pll_get_post_language( $orig_page_id, 'locale' );
 				$orig_postlang	 = pll_get_post_language( $orig_page_id, 'slug' );
 				//default pages may not have language set correctly
@@ -405,7 +677,7 @@ class Plugin
 					if ( $langLocale != $orig_postlocale ) {
 
 						// and there is no translation in target language
-						$translation_id = pll_get_post( $orig_page_id, $langLocale );
+							$translation_id = pll_get_post( $orig_page_id, $langSlug );
 						if ( $translation_id == 0 || $translation_id == $orig_page_id ) {
 							if ( $create_pages ) {
                                 //then create new post in target language

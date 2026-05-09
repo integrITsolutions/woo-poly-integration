@@ -1,7 +1,8 @@
 <?php
 /**
- * This file is part of the hyyan/woo-poly-integration plugin.
- * (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * This file is part of the woo-poly-integration plugin.
+ * Original (c) Hyyan Abo Fakher <hyyanaf@gmail.com>.
+ * Modernized fork (c) IntegrIT Solutions.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -400,7 +401,16 @@ class Emails
         $target_language = $locale;
 
         if (is_a($target_object, 'WC_Order')) {
-            $target_language = pll_get_post_language($target_object->get_id(), 'locale');
+            // Read order language via Order::getLanguage which consults order CRUD meta
+            // (HPOS-native) first, falls back to Polylang taxonomy for legacy orders, and
+            // returns the locale directly when requested. This is critical in cron /
+            // Action Scheduler contexts where the request has no current language.
+            $resolved = Order::getLanguage($target_object, 'locale');
+            if (is_string($resolved) && $resolved !== '') {
+                $target_language = $resolved;
+            }
+            // If the order has no language stored at all, $target_language stays at the
+            // current request locale — same fallback as v1.x behaviour.
         } else if (is_a($target_object, 'WP_User')) {
             $target_language = get_user_locale($target_object->ID);
         }

@@ -92,6 +92,7 @@ class Pages
 
         $shopID = wc_get_page_id('shop');
         $shopOnFront = ('page' === get_option('show_on_front')) && in_array(
+                        // @internal Polylang internal API; reverify on Polylang minor upgrades.
                         get_option('page_on_front'), PLL()->model->post->get_translations(
                                 $shopID
         ));
