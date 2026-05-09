@@ -34,7 +34,7 @@ class Variable
         add_action( 'woocommerce_after_product_object_save', array( $this, 'after_product_save' ), 10, 2 );
 
         // Remove variations
-        add_action('wp_ajax_woocommerce_remove_variations', array($this, 'removeVariations'), 9);
+        add_action('wp_ajax_woocommerce_remove_variations', array($this, 'removeVariations'), 11);
 
         // Extend meta list to include variation meta and fields to lock
         add_filter(HooksInterface::PRODUCT_META_SYNC_FILTER, array($this, 'extendProductMetaList'));
@@ -308,12 +308,28 @@ class Variable
      */
     public function removeVariations()
     {
-        if (isset($_POST['variation_ids'])) {
-            $IDS = (array) $_POST['variation_ids'];
+        check_ajax_referer('delete-variations', 'security');
 
-            foreach ($IDS as $ID) {
-                Variation::deleteRelatedVariation($ID);
+        if (!current_user_can('edit_products')) {
+            wp_die(-1, 403);
+        }
+
+        if (!isset($_POST['variation_ids'])) {
+            return;
+        }
+
+        $variation_ids = wp_unslash($_POST['variation_ids']);
+        if (!is_array($variation_ids)) {
+            $variation_ids = explode(',', (string) $variation_ids);
+        }
+
+        $IDS = array_filter(array_map('absint', $variation_ids));
+        foreach ($IDS as $ID) {
+            if (!current_user_can('delete_post', $ID)) {
+                wp_die(-1, 403);
             }
+
+            Variation::deleteRelatedVariation($ID);
         }
     }
 

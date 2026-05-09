@@ -76,15 +76,13 @@ class Language
             return false;
         }
 
-        if (
-                !isset($_REQUEST['pll_action']) ||
-                'add' !== esc_attr($_REQUEST['pll_action'])
-        ) {
+        $pll_action = isset($_REQUEST['pll_action']) ? sanitize_key(wp_unslash($_REQUEST['pll_action'])) : '';
+        if ('add' !== $pll_action) {
             return false;
         }
 
-        $name = esc_attr($_REQUEST['name']);
-        $locale = esc_attr($_REQUEST['locale']);
+        $name = isset($_REQUEST['name']) ? sanitize_text_field(wp_unslash($_REQUEST['name'])) : '';
+        $locale = isset($_REQUEST['locale']) ? sanitize_text_field(wp_unslash($_REQUEST['locale'])) : '';
 
         if ('en_us' === strtolower($locale)) {
             return true;

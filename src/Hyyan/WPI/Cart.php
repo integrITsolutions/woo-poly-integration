@@ -45,6 +45,7 @@ class Cart
         //   src/StoreApi/Routes/V1/CartAddItem.php:116
         //   src/StoreApi/Utilities/CartController.php:99-147 (add_to_cart)
         add_filter('woocommerce_store_api_add_to_cart_data', array($this, 'dedupeStoreApiAdd'), 10, 2);
+        add_filter('rest_request_before_callbacks', array($this, 'dedupeStoreApiCartItemsRoute'), 10, 3);
 
         // ROOT-CAUSE TRANSLATION (Phase C): swap the cart item's product reference
         // at session-load and add-to-cart time. This means by the time downstream
@@ -268,11 +269,8 @@ class Cart
      *   src/StoreApi/Routes/V1/CartAddItem.php:116-125
      *   src/StoreApi/Utilities/CartController.php:99-147
      *
-     * Known limitation: WC also exposes `POST /wc/store/v1/cart/items` via
-     * `src/StoreApi/Routes/V1/CartItems.php`. That route calls
-     * `CartController::add_to_cart()` without applying
-     * `woocommerce_store_api_add_to_cart_data`, so this dedupe hook does not run
-     * there.
+     * `POST /wc/store/v1/cart/items` is covered by `dedupeStoreApiCartItemsRoute()`
+     * which mutates the REST request `id` before route callbacks run.
      *
      * @param array $add_to_cart_data Filter input: ['id' => int, 'quantity' => int,
      *                                'variation' => array, 'cart_item_data' => array].
@@ -287,14 +285,61 @@ class Cart
         if (empty($add_to_cart_data['id']) || !is_numeric($add_to_cart_data['id'])) {
             return $add_to_cart_data;
         }
-        if (!function_exists('pll_get_post')) {
-            return $add_to_cart_data;
+
+        $dedup_target = $this->resolveDedupTarget((int) $add_to_cart_data['id']);
+        if (null !== $dedup_target) {
+            $add_to_cart_data['id'] = $dedup_target;
         }
 
-        $incoming_id = (int) $add_to_cart_data['id'];
+        return $add_to_cart_data;
+    }
+
+    /**
+     * Add to cart dedup for STORE API `POST /wc/store/v1/cart/items`.
+     *
+     * Mutates request `id` before route callback so `CartController::add_to_cart()`
+     * receives the canonical cart-line ID and `find_product_in_cart()` dedupes.
+     *
+     * @param mixed            $response Result to send to the client.
+     * @param array            $handler  Route handler.
+     * @param \WP_REST_Request $request  REST request object.
+     * @return mixed
+     */
+    public function dedupeStoreApiCartItemsRoute($response, $handler, \WP_REST_Request $request)
+    {
+        if ('POST' !== $request->get_method() || '/wc/store/v1/cart/items' !== $request->get_route()) {
+            return $response;
+        }
+
+        $incoming_id = $request->get_param('id');
+        if (!is_numeric($incoming_id)) {
+            return $response;
+        }
+
+        $dedup_target = $this->resolveDedupTarget((int) $incoming_id);
+        if (null !== $dedup_target) {
+            $request->set_param('id', $dedup_target);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Resolve a canonical in-cart product/variation ID for dedup, if any.
+     *
+     * @param int $incoming_id Product ID or variation ID being added.
+     * @return int|null Canonical in-cart ID to use for dedup, null when not found.
+     */
+    private function resolveDedupTarget($incoming_id)
+    {
+        $incoming_id = (int) $incoming_id;
+        if ($incoming_id <= 0 || !function_exists('pll_get_post') || !WC()->cart) {
+            return null;
+        }
+
         $incoming_product = wc_get_product($incoming_id);
         if (!$incoming_product) {
-            return $add_to_cart_data;
+            return null;
         }
 
         // For variations, dedup at the variation-sibling level via the
@@ -302,57 +347,43 @@ class Cart
         // pointing to the master variation ID (the original-language one); a
         // master self-references. Translations of the same logical variation
         // share the same master ID.
-        //
-        // CRITICAL: when matching a cart line, read the line's CANONICAL
-        // `variation_id` (the one used in `WC_Cart::generate_cart_id`), not
-        // `$values['data']->get_id()`. The latter is the translated product
-        // object after our session-load filter ran — its ID would not match the
-        // cart line's stored KEY, breaking dedup.
         if ($incoming_product->get_type() === 'variation') {
-            $incoming_master = get_post_meta($incoming_id, \Hyyan\WPI\Product\Variation::DUPLICATE_KEY, true);
+            $incoming_master = (int) get_post_meta($incoming_id, Variation::DUPLICATE_KEY, true);
             if (!$incoming_master) {
                 // No linkage recorded — can't dedup safely.
-                return $add_to_cart_data;
+                return null;
             }
-            $incoming_master = (int) $incoming_master;
 
-            if (WC()->cart) {
-                foreach (WC()->cart->get_cart() as $values) {
-                    $cart_variation_id = isset($values['variation_id']) ? (int) $values['variation_id'] : 0;
-                    if (!$cart_variation_id) {
-                        continue;
-                    }
-                    $cart_master = (int) get_post_meta($cart_variation_id, \Hyyan\WPI\Product\Variation::DUPLICATE_KEY, true);
-                    if ($cart_master && $cart_master === $incoming_master) {
-                        // Same logical variation, possibly different language.
-                        // Swap to the canonical variation_id so generate_cart_id
-                        // matches the existing line's stored KEY.
-                        $add_to_cart_data['id'] = $cart_variation_id;
-                        break;
-                    }
+            foreach (WC()->cart->get_cart() as $values) {
+                // Read canonical `variation_id`, not translated `$values['data']->get_id()`.
+                $cart_variation_id = isset($values['variation_id']) ? (int) $values['variation_id'] : 0;
+                if (!$cart_variation_id) {
+                    continue;
+                }
+                $cart_master = (int) get_post_meta($cart_variation_id, Variation::DUPLICATE_KEY, true);
+                if ($cart_master && $cart_master === $incoming_master) {
+                    return $cart_variation_id;
                 }
             }
-            return $add_to_cart_data;
+
+            return null;
         }
 
         // Simple / grouped / external products.
         $translations = Utilities::getProductTranslationsArrayByID($incoming_id);
         if (!is_array($translations) || empty($translations)) {
-            return $add_to_cart_data;
+            return null;
         }
-        if (WC()->cart) {
-            foreach (WC()->cart->get_cart() as $values) {
-                // Use the canonical product_id (NOT the translated $values['data']->get_id()).
-                // Same rationale as the variation branch above.
-                $cart_canonical_id = isset($values['product_id']) ? (int) $values['product_id'] : 0;
-                if ($cart_canonical_id && in_array($cart_canonical_id, $translations, true)) {
-                    $add_to_cart_data['id'] = $cart_canonical_id;
-                    break;
-                }
+
+        foreach (WC()->cart->get_cart() as $values) {
+            // Use canonical `product_id`, not translated `$values['data']->get_id()`.
+            $cart_canonical_id = isset($values['product_id']) ? (int) $values['product_id'] : 0;
+            if ($cart_canonical_id && in_array($cart_canonical_id, $translations, true)) {
+                return $cart_canonical_id;
             }
         }
 
-        return $add_to_cart_data;
+        return null;
     }
 
     /**

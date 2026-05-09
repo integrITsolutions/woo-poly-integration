@@ -4,3 +4,5 @@
 *.gif
 *.gif
 .idea
+# Build artifacts
+dist/
