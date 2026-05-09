@@ -32,10 +32,8 @@ class Endpoints
     public function __construct()
     {
 
-        /* Register endpoints to translate as polulang strings */
-        if (is_admin()) {
-            $this->regsiterEndpointsTranslations();
-        }
+        /* Register and cache endpoint translations */
+        $this->regsiterEndpointsTranslations();
 
         add_action(
                 'init', array($this, 'rewriteEndpoints'), 11
@@ -90,6 +88,12 @@ class Endpoints
 
         $vars = WC()->query->get_query_vars();
         foreach ($vars as $key => $value) {
+            $this->endpoints [] = $value;
+            if (is_admin() && function_exists('pll_register_string')) {
+                pll_register_string(
+                        $value, $value, static::getPolylangStringSection()
+                );
+            }
             WC()->query->query_vars[$key] = $this->getEndpointTranslation($value);
         }
     }
@@ -108,14 +112,6 @@ class Endpoints
      */
     public function getEndpointTranslation($endpoint)
     {
-        if (is_admin() && function_exists('pll_register_string')) {
-            pll_register_string(
-                    $endpoint, $endpoint, static::getPolylangStringSection()
-            );
-        }
-
-        $this->endpoints [] = $endpoint;
-
         return pll__($endpoint);
     }
 

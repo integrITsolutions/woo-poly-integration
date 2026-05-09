@@ -49,11 +49,21 @@ class LayeredNav
             $taxonomy = wc_attribute_taxonomy_name($attribute);
             $name = 'filter_'.$attribute;
 
-            if (!(!empty($_GET[$name]) && taxonomy_exists($taxonomy))) {
+            if (empty($_GET[$name]) || !taxonomy_exists($taxonomy)) {
                 continue;
             }
 
-            $terms = explode(',', $_GET[$name]);
+            $raw = $_GET[$name];
+            if (is_array($raw)) {
+                continue;
+            }
+
+            $raw = wp_unslash($raw);
+            if (!is_string($raw) || $raw === '') {
+                continue;
+            }
+
+            $terms = array_filter(array_map('sanitize_title', explode(',', $raw)));
             $termsTranslations = array();
 
             foreach ($terms as $term_slug) {
