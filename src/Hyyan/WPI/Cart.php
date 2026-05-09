@@ -231,15 +231,20 @@ class Cart
             return $result;
         }
 
-        // check if any of product's translation is already in cart
+        // Check if any of product's translations is already in cart.
+        //
+        // CRITICAL: read the cart line's CANONICAL `product_id` (the value used
+        // by WC_Cart::generate_cart_id() to compute the line's KEY), NOT
+        // `$values['data']->get_id()`. Our session-load filter swaps `$values['data']`
+        // to the translated product object, so reading `data->get_id()` returns the
+        // current-language ID — which doesn't match the cart line's stored KEY,
+        // causing dedup to fail and creating duplicate cart lines on repeat adds
+        // across language switches.
         if (WC()->cart) {
             foreach (WC()->cart->get_cart() as $values) {
-                if (!isset($values['data']) || !$values['data'] instanceof \WC_Product) {
-                    continue;
-                }
-                $product = $values['data'];
-                if (in_array($product->get_id(), $IDS, true)) {
-                    $result = $product->get_id();
+                $cart_canonical_id = isset($values['product_id']) ? (int) $values['product_id'] : 0;
+                if ($cart_canonical_id && in_array($cart_canonical_id, $IDS, true)) {
+                    $result = $cart_canonical_id;
                     break;
                 }
             }
@@ -297,6 +302,12 @@ class Cart
         // pointing to the master variation ID (the original-language one); a
         // master self-references. Translations of the same logical variation
         // share the same master ID.
+        //
+        // CRITICAL: when matching a cart line, read the line's CANONICAL
+        // `variation_id` (the one used in `WC_Cart::generate_cart_id`), not
+        // `$values['data']->get_id()`. The latter is the translated product
+        // object after our session-load filter ran — its ID would not match the
+        // cart line's stored KEY, breaking dedup.
         if ($incoming_product->get_type() === 'variation') {
             $incoming_master = get_post_meta($incoming_id, \Hyyan\WPI\Product\Variation::DUPLICATE_KEY, true);
             if (!$incoming_master) {
@@ -307,17 +318,15 @@ class Cart
 
             if (WC()->cart) {
                 foreach (WC()->cart->get_cart() as $values) {
-                    if (!isset($values['data']) || !$values['data'] instanceof \WC_Product) {
+                    $cart_variation_id = isset($values['variation_id']) ? (int) $values['variation_id'] : 0;
+                    if (!$cart_variation_id) {
                         continue;
                     }
-                    $cart_product = $values['data'];
-                    if ($cart_product->get_type() !== 'variation') {
-                        continue;
-                    }
-                    $cart_variation_id = (int) $cart_product->get_id();
                     $cart_master = (int) get_post_meta($cart_variation_id, \Hyyan\WPI\Product\Variation::DUPLICATE_KEY, true);
                     if ($cart_master && $cart_master === $incoming_master) {
                         // Same logical variation, possibly different language.
+                        // Swap to the canonical variation_id so generate_cart_id
+                        // matches the existing line's stored KEY.
                         $add_to_cart_data['id'] = $cart_variation_id;
                         break;
                     }
@@ -333,12 +342,11 @@ class Cart
         }
         if (WC()->cart) {
             foreach (WC()->cart->get_cart() as $values) {
-                if (!isset($values['data']) || !$values['data'] instanceof \WC_Product) {
-                    continue;
-                }
-                $cart_product_id = (int) $values['data']->get_id();
-                if (in_array($cart_product_id, $translations, true)) {
-                    $add_to_cart_data['id'] = $cart_product_id;
+                // Use the canonical product_id (NOT the translated $values['data']->get_id()).
+                // Same rationale as the variation branch above.
+                $cart_canonical_id = isset($values['product_id']) ? (int) $values['product_id'] : 0;
+                if ($cart_canonical_id && in_array($cart_canonical_id, $translations, true)) {
+                    $add_to_cart_data['id'] = $cart_canonical_id;
                     break;
                 }
             }
