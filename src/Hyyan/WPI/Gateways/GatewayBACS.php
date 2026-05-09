@@ -49,11 +49,19 @@ class GatewayBACS extends \WC_Gateway_BACS
      */
     public function email_instructions($order, $sent_to_admin, $plain_text = false)
     {
-        if (!$sent_to_admin && 'bacs' === Utilities::get_payment_method($order) && $order->has_status('on-hold')) {
-            if ($this->instructions) {
-                echo wpautop(wptexturize(function_exists('pll__') ? pll__($this->instructions) : __($this->instructions, 'woocommerce'))).PHP_EOL;
+        if (!($order instanceof \WC_Order)) {
+            return;
+        }
+
+        if (!$sent_to_admin && 'bacs' === Utilities::get_payment_method($order)) {
+            $instructions_order_status = apply_filters('woocommerce_bacs_email_instructions_order_status', 'on-hold', $order);
+            if ($order->has_status($instructions_order_status)) {
+                if ($this->instructions) {
+                    $instructions = function_exists('pll__') ? pll__($this->instructions) : __($this->instructions, 'woocommerce');
+                    echo wp_kses_post(wpautop(wptexturize($instructions)).PHP_EOL);
+                }
+                $this->bank_details(Utilities::get_orderid($order));
             }
-            $this->bank_details(Utilities::get_orderid($order));
         }
     }
 

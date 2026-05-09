@@ -23,7 +23,10 @@ class Privacy
         $this->registerPrivacyStrings();
         add_filter('woocommerce_get_privacy_policy_text', array($this, 'translatePrivacyPolicyText'), 10, 2);
         add_filter( 'woocommerce_demo_store', array( $this, 'translateDemoStoreNotice' ), 10, 2 );
-		add_filter( 'woocommerce_get_terms_and_conditions_checkbox_text', array( $this, 'translateText' ), 10, 1 );
+        add_filter( 'woocommerce_get_terms_and_conditions_checkbox_text', array( $this, 'translateText' ), 10, 1 );
+        add_filter( 'woocommerce_privacy_export_order_personal_data_meta', array( $this, 'addOrderLanguageMetaToPrivacyExport' ), 10, 1 );
+        add_filter( 'woocommerce_privacy_remove_order_personal_data_meta', array( $this, 'addOrderLanguageMetaToPrivacyErasure' ), 10, 1 );
+        add_filter( 'woocommerce_privacy_remove_order_personal_data_meta_value', array( $this, 'eraseOrderLanguageMetaValue' ), 10, 5 );
     }
 
     /**
@@ -80,6 +83,59 @@ class Privacy
         } else {
             return $html;
         }
+    }
+
+    /**
+     * Include order language meta in WooCommerce privacy exports.
+     *
+     * @param array $meta_to_export
+     * @return array
+     */
+    public function addOrderLanguageMetaToPrivacyExport($meta_to_export)
+    {
+        if (!is_array($meta_to_export)) {
+            $meta_to_export = array();
+        }
+
+        $meta_to_export[Order::META_KEY_LANGUAGE] = __('Order language', 'woo-poly-integration');
+        return $meta_to_export;
+    }
+
+    /**
+     * Include order language meta in WooCommerce privacy erasure list.
+     *
+     * @param array $meta_to_remove
+     * @return array
+     */
+    public function addOrderLanguageMetaToPrivacyErasure($meta_to_remove)
+    {
+        if (!is_array($meta_to_remove)) {
+            $meta_to_remove = array();
+        }
+
+        $meta_to_remove[Order::META_KEY_LANGUAGE] = 'text';
+        return $meta_to_remove;
+    }
+
+    /**
+     * Force full erasure of order language meta in privacy removal flow.
+     *
+     * Returning empty string makes WooCommerce delete the meta key.
+     *
+     * @param string   $anon_value
+     * @param string   $meta_key
+     * @param string   $value
+     * @param string   $data_type
+     * @param \WC_Order $order
+     * @return string
+     */
+    public function eraseOrderLanguageMetaValue($anon_value, $meta_key, $value, $data_type, $order)
+    {
+        if ($meta_key === Order::META_KEY_LANGUAGE) {
+            return '';
+        }
+
+        return $anon_value;
     }
 
 }

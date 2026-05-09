@@ -142,9 +142,16 @@ class Endpoints
      */
     public function addEndpoints()
     {
+        static $registered = array();
+
         $langs = pll_languages_list();
         foreach ($this->endpoints as $endpoint) {
             foreach ($langs as $lang) {
+                $registration_key = $endpoint . '|' . $lang;
+                if (isset($registered[$registration_key])) {
+                    continue;
+                }
+                $registered[$registration_key] = true;
                 add_rewrite_endpoint(pll_translate_string($endpoint, $lang), EP_ROOT | EP_PAGES);
             }
         }
@@ -200,7 +207,7 @@ class Endpoints
         foreach ($endpoints as $key => $value) {
             if (isset($wp->query_vars[$key])) {
                 $link = str_replace(
-                        $value, pll_translate_string($key, $slug), $link
+                        $value, pll_translate_string($value, $slug), $link
                 );
                 break;
             }

@@ -26,6 +26,7 @@ class Emails
     /** @var array Array of email types */
     public $emails;
     public $switched_lang = '';
+    public $switched_wp_locale = false;
 
     /*
      * gets the woocommerce default value for the string type:
@@ -182,9 +183,10 @@ class Emails
             add_filter('woocommerce_email_from_address', array($this, 'translateCommonString'));
             add_filter('woocommerce_email_from_name', array($this, 'translateCommonString'));
 
-            //reset language switch on woocommerce events
-            add_filter('woocommerce_email_setup_locale', array($this, 'reset_lang_switch'));
-            add_filter('woocommerce_email_restore_locale', array($this, 'reset_lang_switch'));
+            // Respect WooCommerce email locale lifecycle and layer our switch on top.
+            add_filter('woocommerce_email_setup_locale', array($this, 'onEmailSetupLocale'));
+            add_filter('woocommerce_email_restore_locale', array($this, 'onEmailRestoreLocale'));
+            add_action('woocommerce_email_sent', array($this, 'onEmailSent'), 10, 3);
 
             do_action(HooksInterface::EMAILS_TRANSLATION_ACTION, $this);
         }
@@ -414,17 +416,59 @@ class Emails
         } else if (is_a($target_object, 'WP_User')) {
             $target_language = get_user_locale($target_object->ID);
         }
-        Utilities::switchLocale($target_language);
+        $this->switched_wp_locale = (bool) Utilities::switchLocale($target_language);
         $this->switched_lang = $target_language;
         return $target_language;
     }
     /**
-     * hooked to woocommerce email start/stop events to reset switched status
+     * Hooked to WooCommerce email locale setup gate.
+     *
+     * Resets per-email switch cache but keeps WC's setup decision untouched.
+     *
+     * @param bool $should_setup
+     * @return bool
      */
-    public function reset_lang_switch()
+    public function onEmailSetupLocale($should_setup)
     {
         $this->switched_lang = '';
-        return false;
+        $this->switched_wp_locale = false;
+        return (bool) $should_setup;
+    }
+
+    /**
+     * Hooked to WooCommerce email locale restore gate.
+     *
+     * Restores our locale switch (if any), then lets WC restore its own locale.
+     *
+     * @param bool $should_restore
+     * @return bool
+     */
+    public function onEmailRestoreLocale($should_restore)
+    {
+        if ($this->switched_wp_locale) {
+            Utilities::restoreLocale();
+        }
+        $this->switched_lang = '';
+        $this->switched_wp_locale = false;
+        return (bool) $should_restore;
+    }
+
+    /**
+     * Final email teardown safety net.
+     *
+     * Handles flows where setup/restore locale hooks are not run.
+     *
+     * @param bool     $sent
+     * @param string   $email_id
+     * @param \WC_Email $email
+     */
+    public function onEmailSent($sent, $email_id, $email)
+    {
+        if ($this->switched_wp_locale) {
+            Utilities::restoreLocale();
+        }
+        $this->switched_lang = '';
+        $this->switched_wp_locale = false;
     }
     /**
      * Translates Woocommerce email subjects and headings content to the order language.

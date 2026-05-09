@@ -113,6 +113,14 @@ class Order
             10,
             1
         );
+        // Classic + Store API checkout line item creation path:
+        // restore canonical product/variation IDs before the order is saved.
+        add_action(
+            'woocommerce_checkout_create_order_line_item',
+            array($this, 'restoreCanonicalIdsOnOrderLineItem'),
+            10,
+            4
+        );
         // Backstop for non-checkout order creation (admin, REST API, subscriptions,
         // programmatic). Only writes if current request has a known language AND
         // the order has no language stored yet — never overrides an explicit choice.
@@ -493,6 +501,39 @@ class Order
         }
 
         self::setLanguage($order, $current);
+    }
+
+    /**
+     * Restore canonical product/variation IDs on checkout-created order line items.
+     *
+     * WooCommerce builds line items from `$values['data']` (possibly translated
+     * product object). Our cart line keeps canonical IDs in `$values['product_id']`
+     * and `$values['variation_id']`; restore those before item save.
+     *
+     * @param \WC_Order_Item_Product $item
+     * @param string                 $cart_item_key
+     * @param array                  $values
+     * @param \WC_Order              $order
+     */
+    public function restoreCanonicalIdsOnOrderLineItem($item, $cart_item_key, $values, $order)
+    {
+        if (!$item instanceof \WC_Order_Item_Product || !is_array($values)) {
+            return;
+        }
+
+        if (isset($values['product_id'])) {
+            $canonical_product_id = (int) $values['product_id'];
+            if ($canonical_product_id > 0 && (int) $item->get_product_id() !== $canonical_product_id) {
+                $item->set_product_id($canonical_product_id);
+            }
+        }
+
+        if (isset($values['variation_id'])) {
+            $canonical_variation_id = (int) $values['variation_id'];
+            if ((int) $item->get_variation_id() !== $canonical_variation_id) {
+                $item->set_variation_id($canonical_variation_id);
+            }
+        }
     }
 
     /**

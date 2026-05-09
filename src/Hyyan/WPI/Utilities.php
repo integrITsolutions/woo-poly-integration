@@ -19,6 +19,12 @@ namespace Hyyan\WPI;
  */
 final class Utilities
 {
+    /**
+     * Count of active WordPress locale stack entries switched by this class.
+     *
+     * @var int
+     */
+    protected static $wpLocaleSwitchDepth = 0;
 
     /**
      * Get the translations IDS of the given product ID.
@@ -571,11 +577,12 @@ final class Utilities
 	 * Reload text domains with requested locale.
 	 *
 	 * @param string $languageLocale Language locale (e.g. en_GB, de_DE )
+	 * @return bool True when WordPress locale stack was pushed, false otherwise.
 	 */
 	public static function switchLocale( $languageLocale ) 
 	{
 		static::switch_pll_locale( $languageLocale );
-		static::switch_wp_locale( $languageLocale );
+		return static::switch_wp_locale( $languageLocale );
 	}
 
 	/*
@@ -583,11 +590,13 @@ final class Utilities
 	 * Note, as per previous functions this function does not attempt to avoid switching if already switched
 	 *
 	 * @param string $languageLocale Language locale (e.g. en_GB, de_DE )
+	 * @return bool True when WordPress locale stack was pushed, false otherwise.
 	 */
 	public static function switch_wp_locale( $languageLocale ) {
-			if ( ! $languageLocale ) {
-			    return;
-			}
+				$did_switch = false;
+				if ( ! $languageLocale ) {
+				    return false;
+				}
 
 			// unload plugin's textdomains
 			unload_textdomain( 'default' );
@@ -598,10 +607,13 @@ final class Utilities
 			//allow other plugins opportunity to unload text domain
 			do_action( HooksInterface::EMAILS_SWITCH_LANGUAGE_ACTION, $languageLocale );
 
-			//switch locale
-			if ( function_exists( 'switch_to_locale' ) ) {
-			    switch_to_locale( $languageLocale );
-			}
+				//switch locale
+				if ( function_exists( 'switch_to_locale' ) ) {
+				    $did_switch = switch_to_locale( $languageLocale );
+				    if ( $did_switch ) {
+				        static::$wpLocaleSwitchDepth++;
+				    }
+				}
 
 			//create closure to filter plugin locale so other calls during language
 			//switching pick up correct plugin locale
@@ -623,9 +635,24 @@ final class Utilities
 			do_action( HooksInterface::EMAILS_AFTER_SWITCH_LANGUAGE_ACTION, $languageLocale );
 
 			$wp_locale = new \WP_Locale();
-			//remove_filter does not work with closure so use remove_all_filters with priority
-			//remove_filter( 'plugin_locale', $locale_fn, 9999 );
-			remove_all_filters( 'plugin_locale', 9999 );
+				//remove_filter does not work with closure so use remove_all_filters with priority
+				//remove_filter( 'plugin_locale', $locale_fn, 9999 );
+				remove_all_filters( 'plugin_locale', 9999 );
+				return $did_switch;
+	}
+
+	/**
+	 * Restore the previous WordPress locale after switchLocale()/switch_wp_locale().
+	 *
+	 * Balanced restore: only pops the locale stack when this class previously
+	 * pushed it via switch_to_locale().
+	 */
+	public static function restoreLocale() {
+		if ( static::$wpLocaleSwitchDepth > 0 && function_exists( 'restore_previous_locale' ) ) {
+			if ( restore_previous_locale() ) {
+				static::$wpLocaleSwitchDepth--;
+			}
+		}
 	}
 
 	/*

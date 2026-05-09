@@ -49,8 +49,13 @@ class GatewayCOD extends \WC_Gateway_COD
      */
     public function email_instructions($order, $sent_to_admin, $plain_text = false)
     {
+        if (!($order instanceof \WC_Order)) {
+            return;
+        }
+
         if ($this->instructions && !$sent_to_admin && 'cod' === Utilities::get_payment_method($order)) {
-            echo wpautop(wptexturize(function_exists('pll__') ? pll__($this->instructions) : __($this->instructions, 'woocommerce'))).PHP_EOL;
+            $instructions = function_exists('pll__') ? pll__($this->instructions) : __($this->instructions, 'woocommerce');
+            echo wp_kses_post(wpautop(wptexturize($instructions)).PHP_EOL);
         }
     }
 }

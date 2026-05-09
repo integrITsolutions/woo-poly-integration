@@ -56,9 +56,23 @@ class LayeredNav
             $terms = explode(',', $_GET[$name]);
             $termsTranslations = array();
 
-            foreach ($terms as $ID) {
-                $translation = pll_get_term($ID);
-                $termsTranslations [] = $translation ? $translation : $ID;
+            foreach ($terms as $term_slug) {
+                $source_term = get_term_by('slug', $term_slug, $taxonomy);
+                if (!$source_term || is_wp_error($source_term)) {
+                    $termsTranslations[] = $term_slug;
+                    continue;
+                }
+
+                $translation_id = pll_get_term($source_term->term_id);
+                if ($translation_id && (int) $translation_id !== (int) $source_term->term_id) {
+                    $translated_term = get_term($translation_id, $taxonomy);
+                    if ($translated_term && !is_wp_error($translated_term)) {
+                        $termsTranslations[] = $translated_term->slug;
+                        continue;
+                    }
+                }
+
+                $termsTranslations[] = $term_slug;
             }
 
             $_GET[$name] = implode(',', $termsTranslations);
