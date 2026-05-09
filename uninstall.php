@@ -38,6 +38,7 @@ foreach ($options_to_delete as $opt) {
 // Transients.
 $transients_to_delete = array(
     'wpi_v2_migration_result',
+    'coupons-ids',
 );
 
 foreach ($transients_to_delete as $t) {

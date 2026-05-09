@@ -102,8 +102,25 @@ class Taxonomies
      */
     public static function updatePolyLangFromWooPolyMetas($old_value, $new_value, $option)
     {
-        //we could update Polylang settings for Featured Image, Comment Status, Page Order
-        //if the WooPoly settings have changed, but note this would also affect Posts
+        $polylang_sync_keys = array(
+            'menu_order',
+            '_thumbnail_id',
+            'comment_status',
+        );
+
+        $polylang_metas = array();
+        if (isset($new_value['polylang']) && is_array($new_value['polylang'])) {
+            $polylang_metas = $new_value['polylang'];
+        }
+
+        foreach ($polylang_sync_keys as $sync_key) {
+            if (isset($polylang_metas[$sync_key]) && (string) $polylang_metas[$sync_key] !== '') {
+                PolylangOptions::enableSync($sync_key);
+            } else {
+                PolylangOptions::removeFromList('sync', $sync_key);
+            }
+        }
+
         return true;
     }
 

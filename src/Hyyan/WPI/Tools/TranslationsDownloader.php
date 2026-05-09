@@ -38,70 +38,90 @@ class TranslationsDownloader
             return true;
         }
 
-        /* Check if we can download */
-        if (!static::isAvaliable($locale)) {
-            $notAvaliable = sprintf(
-                    __(
-                            'WooCommerce translation %s can not be found in : <a href="%2$s">%2$s</a>', 'woo-poly-integration'
-                    ), sprintf('%s(%s)', $name, $locale), static::getRepoUrl()
+        $lock_key = 'wpi_xlate_dl_lock_' . sanitize_key((string) $locale);
+        if (get_transient($lock_key)) {
+            return false;
+        }
+        set_transient($lock_key, 1, 5 * MINUTE_IN_SECONDS);
+
+        $temp_file = null;
+
+        try {
+
+            /* Check if we can download */
+            if (!static::isAvaliable($locale)) {
+                $notAvaliable = sprintf(
+                        __(
+                                'WooCommerce translation %s can not be found in : <a href="%2$s">%2$s</a>', 'woo-poly-integration'
+                        ), sprintf('%s(%s)', $name, $locale), static::getRepoUrl()
+                );
+
+                throw new \RuntimeException($notAvaliable);
+            }
+
+            /* Download the language pack */
+            $cantDownload = sprintf(
+                    __('Unable to download WooCommerce translation %s from : <a href="%2$s">%2$s</a>', 'woo-poly-integration'), sprintf('%s(%s)', $name, $locale), static::getRepoUrl()
             );
 
-            throw new \RuntimeException($notAvaliable);
-        }
+            /* Unzip destination: wp-content/languages/plugins directory */
+            $dir = trailingslashit(WP_LANG_DIR) . 'plugins/';
+            if (!wp_is_writable($dir)) {
+                return false;
+            }
 
-        /* Download the language pack */
-        $cantDownload = sprintf(
-                __('Unable to download WooCommerce translation %s from : <a href="%2$s">%2$s</a>', 'woo-poly-integration'), sprintf('%s(%s)', $name, $locale), static::getRepoUrl()
-        );
-        $response = wp_remote_get(
-                sprintf('%s/%s.zip', static::getRepoUrl(), $locale), array('timeout' => 200)
-        );
+            $response = wp_remote_get(
+                    sprintf('%s/%s.zip', static::getRepoUrl(), $locale), array('timeout' => 200)
+            );
 
-        if (
-                !is_wp_error($response) &&
-                ($response['response']['code'] >= 200 &&
-                $response['response']['code'] < 300)
-        ) {
+            if (
+                    !is_wp_error($response) &&
+                    ($response['response']['code'] >= 200 &&
+                    $response['response']['code'] < 300)
+            ) {
 
-            /* Initialize the WP filesystem, no more using 'file-put-contents' function */
-            global $wp_filesystem;
-            if (empty($wp_filesystem)) {
-                require_once ABSPATH.'/wp-admin/includes/file.php';
+                /* Initialize the WP filesystem, no more using 'file-put-contents' function */
+                global $wp_filesystem;
+                if (empty($wp_filesystem)) {
+                    require_once ABSPATH.'/wp-admin/includes/file.php';
 
-                if (false === ($creds = request_filesystem_credentials('', '', false, false, null))) {
+                    if (false === ($creds = request_filesystem_credentials('', '', false, false, null))) {
+                        throw new \RuntimeException($cantDownload);
+                    }
+
+                    if (!WP_Filesystem($creds)) {
+                        throw new \RuntimeException($cantDownload);
+                    }
+                }
+
+                $temp_file = wp_tempnam($locale . '.zip');
+                if (!$temp_file) {
                     throw new \RuntimeException($cantDownload);
                 }
 
-                if (!WP_Filesystem($creds)) {
+                /* Save the zip file */
+                if (!$wp_filesystem->put_contents($temp_file, $response['body'], FS_CHMOD_FILE)) {
                     throw new \RuntimeException($cantDownload);
                 }
-            }
 
-            $uploadDir = wp_upload_dir();
-            $safe_locale_filename = sanitize_file_name((string) $locale);
-            if ($safe_locale_filename === '') {
+                $unzip = unzip_file($temp_file, $dir);
+                if (is_wp_error($unzip)) {
+                    return false;
+                }
+                if (true !== $unzip) {
+                    return false;
+                }
+
+                return true;
+            } else {
                 throw new \RuntimeException($cantDownload);
             }
-            $file = trailingslashit($uploadDir['path']).$safe_locale_filename.'.zip';
+        } finally {
+            delete_transient($lock_key);
 
-            /* Save the zip file */
-            if (!$wp_filesystem->put_contents($file, $response['body'], FS_CHMOD_FILE)) {
-                throw new \RuntimeException($cantDownload);
+            if (isset($temp_file) && is_string($temp_file) && file_exists($temp_file)) {
+                @unlink($temp_file);
             }
-
-            /* Unzip the file to wp-content/languages/plugins directory */
-            $dir = trailingslashit(WP_LANG_DIR).'plugins/';
-            $unzip = unzip_file($file, $dir);
-            if (true !== $unzip) {
-                throw new \RuntimeException($cantDownload);
-            }
-
-            /* Delete the package file */
-            $wp_filesystem->delete($file);
-
-            return true;
-        } else {
-            throw new \RuntimeException($cantDownload);
         }
     }
 

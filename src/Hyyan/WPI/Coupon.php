@@ -46,8 +46,8 @@ class Coupon
                 array($this, 'translateDescription'), 10, 2);
             
             /* additional fields for WooCommerce Extended Coupon Features */
-            $enable_wjecf = function_exists('WJECF');
-            if ($enable_wjecf){
+            self::$enable_wjecf = function_exists('WJECF');
+            if (self::$enable_wjecf){
                 if (self::$enable_logging) {
                     error_log('woopoly enabled wjecf translation: ' . 
                         ' in request: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 
@@ -183,7 +183,7 @@ class Coupon
                         }
                         $freeproduct_message = $coupon->get_meta('_wjecf_select_free_product_message', true);
                         if ($freeproduct_message) {
-                            pll_register_string($coupon_slug . '_freeproductmessage', $coupon_message,
+                            pll_register_string($coupon_slug . '_freeproductmessage', $freeproduct_message,
                             __('WooCommerce Coupon Names', 'woo-poly-integration'), true);
                         }
                     }
