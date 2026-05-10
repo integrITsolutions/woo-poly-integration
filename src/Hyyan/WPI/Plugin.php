@@ -639,7 +639,7 @@ class Plugin
 					    $pageid = wc_get_page_id( $page_type );
 						/* translators: 1: WooCommerce page type, 2: Base language locale, 3: Admin edit URL, 4: Page ID. */
 						$warnings[ $page_type . '::' . $default_locale ] = sprintf(
-						__( '%1$s page in base language %2$s was not found and was created using woocommerce create_pages() as page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $default_locale, edit_post_link( $pageid, 'link' ), $pageid );
+							__( '%1$s page in base language %2$s was not found and was created using woocommerce create_pages() as page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $default_locale, get_edit_post_link( $pageid ), $pageid );
 					} else {
 						/* translators: 1: WooCommerce page type, 2: Base language locale, 3: HTML link to plugin settings. */
 						$warnings[ $page_type . '::' . $default_locale ] = sprintf(
@@ -670,7 +670,7 @@ class Plugin
 						pll_set_post_language( $orig_page_id, $orig_postlang );
 						/* translators: 1: WooCommerce page type, 2: Base language locale, 3: Admin edit URL, 4: Page ID. */
 						$warnings[ $page_type . '::' . $default_locale ] = sprintf(
-						__( '%1$s page did not have language - language set to %2$s on page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $default_locale, edit_post_link( $orig_page_id, 'link' ), $orig_page_id );
+							__( '%1$s page did not have language - language set to %2$s on page <a href="%3$s">%4$s</a>', 'woo-poly-integration' ), $page_type, $default_locale, get_edit_post_link( $orig_page_id ), $orig_page_id );
 					}
 				$translations[ $orig_postlang ] = $orig_page_id;
 				foreach ( $langs as $langId => $langLocale ) {

@@ -544,7 +544,7 @@ class Emails
             $find = array();
             $replace = array();
             $find['order-date'] = '{order_date}';
-            $replace['order-date'] = date_i18n(wc_date_format(), strtotime($target_object->get_date_created()));
+            $replace['order-date'] = wc_format_datetime($target_object->get_date_created(), wc_date_format());
             $formatted_string = str_replace(apply_filters(HooksInterface::EMAILS_ORDER_FIND_REPLACE_FIND_FILTER, $find, $target_object), 
                 apply_filters(HooksInterface::EMAILS_ORDER_FIND_REPLACE_REPLACE_FILTER, $replace, $target_object), $string_template);
             //better solution, native WooCommerce call

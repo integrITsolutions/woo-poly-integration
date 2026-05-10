@@ -307,7 +307,7 @@ final class Utilities
       					        $terms[] = array($key => $value);
                     }
       				  } else {
-      					  $terms = array( array( $key => $value ) );
+      					  $terms[] = array( $key => $value );
       				  }
             }
 
